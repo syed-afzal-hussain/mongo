@@ -257,6 +257,7 @@ windows = False
 freebsd = False
 openbsd = False
 solaris = False
+bigendian = True # For snappy
 force32 = has_option( "force32" ) 
 force64 = has_option( "force64" )
 if not force64 and not force32 and os.getcwd().endswith( "mongo-64" ):
@@ -704,7 +705,6 @@ if nix:
                          "-fno-strict-aliasing",
                          "-ggdb",
                          "-pthread",
-                         "-Wall",
                          "-Wsign-compare",
                          "-Wno-unknown-pragmas",
                          "-Winvalid-pch"] )
@@ -867,6 +867,9 @@ def doConfigure(myenv):
     if freebsd or openbsd:
         if not conf.CheckLib("execinfo"):
             Exit(1)
+
+    #hcj added for snappy
+    Export( "bigendian" )
 
     # 'tcmalloc' needs to be the last library linked. Please, add new libraries before this 
     # point.
