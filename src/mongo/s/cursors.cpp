@@ -270,7 +270,7 @@ namespace mongo {
     }
 
     void CursorCache::gotKillCursors(Message& m ) {
-        int *x = (int *) m.singleData()->_data;
+        little<int> *x = &little<int>::ref( m.singleData()->_data );
         x++; // reserved
         int n = *x++;
 
@@ -282,7 +282,7 @@ namespace mongo {
         uassert( 13286 , "sent 0 cursors to kill" , n >= 1 );
         uassert( 13287 , "too many cursors to kill" , n < 30000 );
 
-        long long * cursors = (long long *)x;
+        little<long long> * cursors = &little<long long>::ref( x );
         AuthorizationManager* authManager =
                 ClientBasic::getCurrent()->getAuthorizationManager();
         for ( int i=0; i<n; i++ ) {

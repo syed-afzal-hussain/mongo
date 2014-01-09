@@ -40,7 +40,7 @@ namespace mongo {
     public:
         const char *name;
         struct Node {
-            int hash;
+            little<int> hash;
             Key k;
             Type value;
             bool inUse() {

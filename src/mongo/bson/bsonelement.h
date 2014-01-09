@@ -20,7 +20,7 @@
 #include <string.h> // strlen
 #include <string>
 #include <vector>
-
+#include "util/bswap.h"
 #include "mongo/bson/bsontypes.h"
 #include "mongo/bson/oid.h"
 #include "mongo/platform/cstdint.h"
@@ -176,7 +176,7 @@ namespace mongo {
             @see Bool(), trueValue()
         */
         Date_t date() const {
-            return *reinterpret_cast< const Date_t* >( value() );
+            return Date_t( little<unsigned long long>::ref( value() ) );
         }
 
         /** Convert the value to boolean, regardless of its type, in a javascript-like fashion
@@ -191,11 +191,11 @@ namespace mongo {
         bool isNumber() const;
 
         /** Return double value for this field. MUST be NumberDouble type. */
-        double _numberDouble() const {return (reinterpret_cast< const PackedDouble* >( value() ))->d; }
+        double _numberDouble() const {return little<double>::ref( value() ); }
         /** Return int value for this field. MUST be NumberInt type. */
-        int _numberInt() const {return *reinterpret_cast< const int* >( value() ); }
+        int _numberInt() const {return little<int>::ref( value() ); }
         /** Return long long value for this field. MUST be NumberLong type. */
-        long long _numberLong() const {return *reinterpret_cast< const long long* >( value() ); }
+        long long _numberLong() const {return little<long long>::ref( value() ); }
 
         /** Retrieve int value for the element safely.  Zero returned if not a number. */
         int numberInt() const;
@@ -234,12 +234,12 @@ namespace mongo {
             @return string size including terminating null
         */
         int valuestrsize() const {
-            return *reinterpret_cast< const int* >( value() );
+            return little<int>::ref( value() );
         }
 
         // for objects the size *includes* the size of the size field
         size_t objsize() const {
-            return static_cast< const size_t >( *reinterpret_cast< const uint32_t* >( value() ) );
+            return little<size_t>::ref( value() );
         }
 
         /** Get a string's value.  Also gives you start of the real data for an embedded object.
@@ -396,11 +396,11 @@ namespace mongo {
         }
 
         Date_t timestampTime() const {
-            unsigned long long t = ((unsigned int*)(value() + 4 ))[0];
+            unsigned long long t = little<unsigned int>::ref( value() + 4 );
             return t * 1000;
         }
         unsigned int timestampInc() const {
-            return ((unsigned int*)(value() ))[0];
+            return little<unsigned int>::ref( value() );
         }
 
         const char * dbrefNS() const {
@@ -411,7 +411,7 @@ namespace mongo {
         const mongo::OID& dbrefOID() const {
             uassert( 10064 ,  "not a dbref" , type() == DBRef );
             const char * start = value();
-            start += 4 + *reinterpret_cast< const int* >( start );
+            start += 4 + little<int>::ref( start );
             return *reinterpret_cast< const mongo::OID* >( start );
         }
 
@@ -483,11 +483,11 @@ namespace mongo {
         // NOTE Behavior changes must be replicated in Value::coerceToBool().
         switch( type() ) {
         case NumberLong:
-            return *reinterpret_cast< const long long* >( value() ) != 0;
+            return little<long long>::ref( value() ) != 0;
         case NumberDouble:
-            return (reinterpret_cast < const PackedDouble* >(value ()))->d != 0;
+            return little<double>::ref( value() ) != 0;
         case NumberInt:
-            return *reinterpret_cast< const int* >( value() ) != 0;
+            return little<int>::ref( value() ) != 0;
         case mongo::Bool:
             return boolean();
         case EOO:
@@ -533,9 +533,9 @@ namespace mongo {
         case NumberDouble:
             return _numberDouble();
         case NumberInt:
-            return *reinterpret_cast< const int* >( value() );
+            return little<int>::ref( value() );
         case NumberLong:
-            return (double) *reinterpret_cast< const long long* >( value() );
+            return little<long long>::ref( value() );
         default:
             return 0;
         }

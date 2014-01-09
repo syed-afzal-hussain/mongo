@@ -159,11 +159,10 @@ namespace mongo {
         try {
 again:
             //mmm( log() << "*  recv() sock:" << this->sock << endl; )
-            int len = -1;
-
-            char *lenbuf = (char *) &len;
-            int lft = 4;
+            const int lft = 4;
+            char lenbuf[lft];
             psock->recv( lenbuf, lft );
+            int len = little<int>::ref( lenbuf );
 
             if ( len < 16 || len > MaxMessageSizeBytes ) { // messages must be large enough for headers
                 if ( len == -1 ) {
