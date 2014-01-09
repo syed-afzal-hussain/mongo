@@ -1,5 +1,4 @@
 # -*- mode: python -*-
-
 Import("env windows linux darwin solaris")
 
 def removeIfPresent(lst, item):

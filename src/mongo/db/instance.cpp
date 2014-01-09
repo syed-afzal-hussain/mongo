@@ -118,8 +118,8 @@ namespace mongo {
 
     // OpTime::now() uses mutex, thus it is in this file not in the cpp files used by drivers and such
     void BSONElementManipulator::initTimestamp() {
-        massert( 10332 ,  "Expected CurrentTime type", _element.type() == Timestamp );
-        unsigned long long &timestamp = *( reinterpret_cast< unsigned long long* >( value() ) );
+        massert( 10332 ,  "Expected CurrentTime type", _element.type() == Timestamp );        
+        little<unsigned long long> &timestamp = little< unsigned long long >::ref( value() );
         if ( timestamp == 0 ) {
             mutex::scoped_lock lk(OpTime::m);
             timestamp = OpTime::now(lk).asDate();
@@ -127,18 +127,18 @@ namespace mongo {
     }
     void BSONElementManipulator::SetNumber(double d) {
         if ( _element.type() == NumberDouble )
-            *getDur().writing( reinterpret_cast< double * >( value() )  ) = d;
+            *getDur().writing( &little< double >::ref( value() ) ) = d;
         else if ( _element.type() == NumberInt )
-            *getDur().writing( reinterpret_cast< int * >( value() ) ) = (int) d;
+            *getDur().writing( &little< int >::ref( value() ) ) = (int) d;
         else verify(0);
     }
     void BSONElementManipulator::SetLong(long long n) {
         verify( _element.type() == NumberLong );
-        *getDur().writing( reinterpret_cast< long long * >(value()) ) = n;
+        *getDur().writing( &little< long long >::ref( value() ) ) = n;
     }
     void BSONElementManipulator::SetInt(int n) {
         verify( _element.type() == NumberInt );
-        getDur().writingInt( *reinterpret_cast< int * >( value() ) ) = n;
+        getDur().writingInt( little< int >::ref( value() ) ) = n;
     }
     /* dur:: version */
     void BSONElementManipulator::ReplaceTypeAndValue( const BSONElement &e ) {
@@ -492,7 +492,7 @@ namespace mongo {
     } /* assembleResponse() */
 
     void receivedKillCursors(Message& m) {
-        int *x = (int *) m.singleData()->_data;
+        little<int> *x = &little<int>::ref( m.singleData()->_data );
         x++; // reserved
         int n = *x++;
 
@@ -505,7 +505,15 @@ namespace mongo {
             verify( n < 30000 );
         }
 
-        int found = ClientCursor::eraseIfAuthorized(n, (long long *) x);
+        
+        // Byteswap (maybe) and align the cursors
+        boost::scoped_array<long long> cursors( new long long[n] );
+        little<long long>* in_cursors = &little<long long>::ref( x );
+        for ( int i = 0; i < n; ++i ) {
+            cursors[i] = in_cursors[i];
+        }
+        
+        int found = ClientCursor::erase(n, &cursors[0] );
 
         if ( logLevel > 0 || found != n ) {
             LOG( found == n ? 1 : 0 ) << "killcursors: found " << found << " of " << n << endl;
@@ -1012,7 +1020,7 @@ namespace mongo {
         // uh - oh, not sure there is anything else we can do...
     }
 
-    static void shutdownServer() {
+    void shutdownServer() {
 
         log() << "shutdown: going to close listening sockets..." << endl;
         ListeningSockets::get()->closeAll();

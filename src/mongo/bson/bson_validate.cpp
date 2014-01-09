@@ -35,8 +35,11 @@ namespace mongo {
                 if ( ( _position + sizeof(N) ) > _maxLength )
                     return false;
                 if ( out ) {
-                    const N* temp = reinterpret_cast<const N*>(_buffer + _position);
-                    *out = *temp;
+//hcj for little
+                    //const N* temp = reinterpret_cast<const N*>(_buffer + _position);
+                    
+                    const N* temp = (const N*)(_buffer + _position);
+                    *out = little<int>::ref(temp);
                 }
                 _position += sizeof(N);
                 return true;

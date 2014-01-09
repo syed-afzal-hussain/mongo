@@ -24,9 +24,9 @@ namespace mongo {
 
     class MessagingPort;
     class PiggyBackData;
-
-    typedef AtomicUInt MSGID;
-
+//hcj: for conflict with before
+//    typedef AtomicUInt MSGID;
+    typedef unsigned int MSGID;
     class AbstractMessagingPort : boost::noncopyable {
     public:
         AbstractMessagingPort() : tag(0), _connectionId(0) {}

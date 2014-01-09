@@ -536,7 +536,7 @@ namespace mongo {
         massert( 10357 ,  "shutdown in progress", ! inShutdown() );
         massert( 10358 ,  "bad new extent size", approxSize >= Extent::minSize() && approxSize <= Extent::maxSize() );
         massert( 10359 ,  "header==0 on new extent: 32 bit mmap space exceeded?", header() ); // null if file open failed
-        int ExtentSize = min(header()->unusedLength, approxSize);
+        int ExtentSize = min( header()->unusedLength + 0, approxSize );
         DiskLoc loc;
         if ( ExtentSize < Extent::minSize() ) {
             /* note there could be a lot of looping here is db just started and
@@ -672,7 +672,7 @@ namespace mongo {
         delRecLength = extentLength - Extent::HeaderSize();
         if( delRecLength >= 32*1024 && str::contains(ns, '$') && !capped ) { 
             // probably an index. so skip forward to keep its records page aligned 
-            int& ofs = emptyLoc.GETOFS();
+            little<int>& ofs = emptyLoc.GETOFS();
             int newOfs = (ofs + 0xfff) & ~0xfff; 
             delRecLength -= (newOfs-ofs);
             dassert( delRecLength > 0 );
@@ -1087,7 +1087,7 @@ namespace mongo {
             }
             else {
                 DEV {
-                    unsigned long long *p = reinterpret_cast<unsigned long long *>( todelete->data() );
+                    little<unsigned long long> *p = &little<unsigned long long >::ref( todelete->data() );
                     *getDur().writing(p) = 0;
                     //DEV memset(todelete->data, 0, todelete->netLength()); // attempt to notice invalid reuse.
                 }
@@ -1645,9 +1645,8 @@ namespace mongo {
                 len = fixedIndexObject.objsize();
             }
         }
-
         IDToInsert idToInsert; // only initialized if needed
-
+       // int addID = 0; // 0 if not adding _id; if adding, the length of that new element
         if( !god ) {
             /* Check if we have an _id field. If we don't, we'll add it.
                Note that btree buckets which we insert aren't BSONObj's, but in that case god==true.
@@ -1670,7 +1669,6 @@ namespace mongo {
 
             BSONElementManipulator::lookForTimestamps( io );
         }
-
         int lenWHdr = d->getRecordAllocationSize( len + Record::HeaderSize );
         fassert( 16440, lenWHdr >= ( len + Record::HeaderSize ) );
         
@@ -1722,26 +1720,23 @@ namespace mongo {
             DiskLoc real = allocateSpaceForANewRecord(ns, d, lenWHdr, god);
             verify( real == loc );
         }
-
         Record *r = loc.rec();
         {
             verify( r->lengthWithHeaders() >= lenWHdr );
             r = (Record*) getDur().writingPtr(r, lenWHdr);
             if( idToInsert.needed() ) {
                 /* a little effort was made here to avoid a double copy when we add an ID */
-                int originalSize = *((int*) obuf);
-                ((int&)*r->data()) = originalSize + idToInsert.size();
+//              int originalSize = *((int*) obuf);
+                little<int>::ref( r->data() ) = little<int>::ref( obuf ) + idToInsert.size();
                 memcpy(r->data()+4, idToInsert.rawdata(), idToInsert.size());
-                memcpy(r->data()+4+idToInsert.size(), ((char*)obuf)+4, originalSize-4);
+                memcpy(r->data()+4+idToInsert.size(), ((char *)obuf)+4, little<int>::ref( obuf )-4);
             }
             else {
                 if( obuf ) // obuf can be null from internal callers
                     memcpy(r->data(), obuf, len);
             }
         }
-
         addRecordToRecListInExtent(r, loc);
-
         /* durability todo : this could be a bit annoying / slow to record constantly */
         {
             NamespaceDetails::Stats *s = getDur().writing(&d->stats);

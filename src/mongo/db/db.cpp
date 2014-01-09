@@ -1261,7 +1261,7 @@ static int mongoDbMain(int argc, char* argv[], char **envp) {
     {
         unsigned x = 0x12345678;
         unsigned char& b = (unsigned char&) x;
-        if ( b != 0x78 ) {
+        if ( 0 && b != 0x78 ) {
             out() << "big endian cpus not yet supported" << endl;
             return 33;
         }

@@ -18,13 +18,14 @@
 #pragma once
 
 // figure out if we're on a 64 or 32 bit system
-
+//hcj in else, just make it MONGO_PLATFORM_64 as default since dont know ppc64's true typedef
 #if defined(__x86_64__) || defined(__amd64__) || defined(_WIN64)
 #define MONGO_PLATFORM_64
 #elif defined(__i386__) || defined(_WIN32)
 #define MONGO_PLATFORM_32
 #else
-#error "unknown platform"
+//#error "unknown platform"
+#define MONGO_PLATFORM_64
 #endif
 
 namespace mongo {

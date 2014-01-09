@@ -28,6 +28,7 @@
 #include "../util/stringutils.h"
 #include "../util/compress.h"
 #include "../util/time_support.h"
+#include "../bson/util/bswap.h"
 #include "../db/db.h"
 
 namespace BasicTests {
@@ -309,6 +310,50 @@ namespace BasicTests {
             if( almostEq( a, b, eps ) ) return true;
             return a > b;
         }
+    };
+
+    class bswaptest {
+    public:
+
+        void run() {
+           {
+               unsigned long long a = 0x123456789abcdef0ULL;
+               ASSERT_EQUALS( 0xf0debc9a78563412ULL, byteSwap<unsigned long long>( a ) );
+           }
+           {
+               const char* a = "0123456789abcdefghijkl";
+               ASSERT_EQUALS( 0x3031323334353637ULL, readBE<unsigned long long>( a ) );
+               ASSERT_EQUALS( 0x3736353433323130ULL, readLE<unsigned long long>( a ) );
+               ASSERT_EQUALS( 0x3132333435363738ULL, readBE<unsigned long long>( a + 1 ) );
+               ASSERT_EQUALS( 0x3837363534333231ULL, readLE<unsigned long long>( a + 1 ) );
+               ASSERT_EQUALS( 0x30313233U, readBE<unsigned int>( a ) );
+               ASSERT_EQUALS( 0x34333231U, readLE<unsigned int>( a + 1 ) );
+               ASSERT_EQUALS( 0x34333231U, little<unsigned int>::ref( a + 1 ) );
+           }
+           {
+               unsigned char a [] = { 0, 0, 0, 0, 0, 0, 0xf0, 0x3f };
+               ASSERT_EQUALS( 1.0, readLE<double>( a ) );
+               ASSERT_EQUALS( 1.0, little<double>::ref( a ) );
+               char b[8];
+               copyLE<double>( b, 1.0 );
+               ASSERT_EQUALS( 0, memcmp( a, b, 8 ) );
+               memset( b, 0xff, 8 );
+               little<double>::ref( b ) = 1.0;
+               ASSERT_EQUALS( 0, memcmp( a, b, 8 ) );
+           }
+           {
+               unsigned char a [] = { 0x3f, 0xf0, 0, 0, 0, 0, 0, 0 };
+               ASSERT_EQUALS( 1.0, readBE<double>( a ) );
+               ASSERT_EQUALS( 1.0, big<double>::ref( a ) );
+               char b[8];
+               copyBE<double>( b, 1.0 );
+               ASSERT_EQUALS( 0, memcmp( a, b, 8 ) );
+               memset( b, 0xff, 8 );
+               big<double>::ref( b ) = 1.0;
+               ASSERT_EQUALS( 0, memcmp( a, b, 8 ) );
+           }
+        }
+        
     };
 
     class AssertTests {
@@ -662,7 +707,7 @@ namespace BasicTests {
             add< sleeptest >();
             add< SleepBackoffTest >();
             add< AssertTests >();
-
+            add< bswaptest >();
             add< ArrayTests::basic1 >();
 
             add< DatabaseOwnsNS >();

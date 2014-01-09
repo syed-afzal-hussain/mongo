@@ -1267,15 +1267,15 @@ namespace mongo {
             strcpy_s(sval, 10, "123456789");
             eoo = EOO;
         }
-        unsigned totsize;
+        little<unsigned> totsize;
 
         char n;
         char nname[5];
-        double N;
+        little<double> N;
 
         char s;
         char sname[7];
-        unsigned slen;
+        little<unsigned> slen;
         char sval[10];
 
         char eoo;
@@ -1294,10 +1294,10 @@ namespace mongo {
             strcpy_s(sval, 10, "123456789");
             eoo = EOO;
         }
-        unsigned totsize;
+        little<unsigned> totsize;
         char s;
         char sname[7];
-        unsigned slen;
+        little<unsigned> slen;
         char sval[10];
         char eoo;
     } js2;
