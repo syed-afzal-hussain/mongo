@@ -25,9 +25,13 @@ namespace mongo {
     //
     struct ChunkVersion {
         union {
-            struct {
+#ifdef BOOST_LITTLE_ENDIAN
                 int _minor;
                 int _major;
+#else
+                int _major;
+                int _minor;
+#endif
             };
             unsigned long long _combined;
         };

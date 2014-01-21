@@ -1043,7 +1043,7 @@ namespace mongo {
                 // TODO: make this safer w/ shard add/remove
                 //
 
-                int* opts = (int*)( r.d().afterNS() );
+		little<int> * opts = &little<int>::ref( const_cast<char*>( r.d().afterNS() ) );
                 opts[0] |= UpdateOption_Broadcast; // this means don't check shard version in mongod
                 broadcastWrite( dbUpdate, r );
                 return;
@@ -1192,8 +1192,8 @@ namespace mongo {
 
             if( ! shard ){
 
-                int * x = (int*)(r.d().afterNS());
-                x[0] |= RemoveOption_Broadcast; // this means don't check shard version in mongod
+                little<int> * x = &little<int>::ref( const_cast<char*>( r.d().afterNS()));
+		x[0] |= RemoveOption_Broadcast; // this means don't check shard version in mongod
                 broadcastWrite(dbDelete, r);
                 return;
             }
