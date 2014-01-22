@@ -329,7 +329,7 @@ namespace mongo {
     BSONObjExternalSorter::Data BSONObjExternalSorter::FileIterator::next() {
         // read BSONObj
 
-        int size;
+        little<int> size;
         verify( _read( reinterpret_cast<char*>(&size), 4 ) );
         char* buf = reinterpret_cast<char*>( malloc( sizeof(unsigned) + size ) );
         verify( buf );
