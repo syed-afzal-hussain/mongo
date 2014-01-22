@@ -1193,7 +1193,7 @@ namespace mongo {
             if( ! shard ){
 
                 little<int> * x = &little<int>::ref( const_cast<char*>( r.d().afterNS()));
-		x[0] |= RemoveOption_Broadcast; // this means don't check shard version in mongod
+                x[0] |= RemoveOption_Broadcast; // this means don't check shard version in mongod
                 broadcastWrite(dbDelete, r);
                 return;
             }
