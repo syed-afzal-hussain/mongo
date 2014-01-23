@@ -268,7 +268,7 @@ namespace mongo {
          *  This INCLUDES the null char at the end */
         int codeWScopeCodeLen() const {
             massert( 16178 , "not codeWScope" , type() == CodeWScope );
-            return *(int *)( value() + 4 );
+            return little<int>::ref( value() + 4);
         }
 
         /** Get the scope SavedContext of a CodeWScope data element.
