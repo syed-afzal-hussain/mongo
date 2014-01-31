@@ -396,11 +396,11 @@ namespace mongo {
         }
 
         Date_t timestampTime() const {
-            unsigned long long t = little<unsigned int>::ref( value() );
+            unsigned long long t = little<unsigned int>::ref( value() + 4 );
             return t * 1000;
         }
         unsigned int timestampInc() const {
-            return little<unsigned int>::ref( value() + 4 );
+            return little<unsigned int>::ref( value() );
         }
 
         const char * dbrefNS() const {
