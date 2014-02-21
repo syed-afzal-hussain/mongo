@@ -26,6 +26,11 @@
 #include "mongo/util/startup_test.h"
 #include "mongo/util/text.h"
 
+#if defined(__powerpc64__) && defined(__BIG_ENDIAN__)
+#define PAGESIZE 65536
+#else
+#define PAGESIZE 4096
+#endif
 
 using namespace mongoutils;
 
@@ -36,16 +41,16 @@ namespace mongo {
             if( 0 && debug ) {
                 try {
                     LogFile f("logfile_test");
-                    void *p = malloc(16384);
+                    void *p = malloc(4*PAGESIZE);
                     char *buf = (char*) p;
-                    buf += 4095;
+                    buf += PAGESIZE - 1;
                     buf = (char*) (((size_t)buf)&(~0xfff));
                     memset(buf, 'z', 8192);
-                    buf[8190] = '\n';
-                    buf[8191] = 'B';
+                    buf[2 * PAGESIZE - 2] = '\n';
+                    buf[2 * PAGESIZE - 1] = 'B';
                     buf[0] = 'A';
-                    f.synchronousAppend(buf, 8192);
-                    f.synchronousAppend(buf, 8192);
+                    f.synchronousAppend(buf, 2 * PAGESIZE);
+                    f.synchronousAppend(buf, 2 * PAGESIZE);
                     free(p);
                 }
                 catch(DBException& e ) {
@@ -226,8 +231,7 @@ namespace mongo {
 
         fassert( 16144, charsToWrite >= 0 );
         fassert( 16142, _fd >= 0 );
-//hcj: comment it out for trial
-        //fassert( 16143, reinterpret_cast<ssize_t>( buf ) % g_minOSPageSizeBytes == 0 );  // aligned
+        fassert( 16143, reinterpret_cast<ssize_t>( buf ) % g_minOSPageSizeBytes == 0 );  // aligned
 
 #ifdef POSIX_FADV_DONTNEED
         const off_t pos = lseek(_fd, 0, SEEK_CUR); // doesn't actually seek, just get current position

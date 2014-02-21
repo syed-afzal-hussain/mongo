@@ -1433,7 +1433,7 @@ namespace mongo {
             for ( unsigned i=0; i<all.size(); i++ ) {
                 for ( unsigned j=i+1; j<all.size(); j++ ) {
                     //hcj: failed with this assertion, for trial, we comment it out temporarily
-                    //verify( all[i] < all[j] );
+                    verify( all[i] < all[j] );
                 }
             }
 

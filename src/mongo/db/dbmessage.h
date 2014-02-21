@@ -198,10 +198,9 @@ namespace mongo {
 
             if ( cmdLine.objcheck ) {
                 Status status = validateBSON( nextjsobj, theEnd - nextjsobj );
-//hcj: comment this out for trial
-//                massert( 10307,
-//                         str::stream() << "Client Error: bad object in message: " << status.reason(),
-//                         status.isOK() );
+                massert( 10307,
+                         str::stream() << "Client Error: bad object in message: " << status.reason(),
+                         status.isOK() );
             }
 
             BSONObj js(nextjsobj);

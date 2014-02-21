@@ -2540,11 +2540,11 @@ namespace mongo {
                 BSONObj in = BSON("x" << x << "y" << y);
                 GeoHash h = conv.hash(in);
                 BSONObj out = conv.unhashToBSONObj(h);
-//hcj: comment out for trial
-                //verify(round(x) == round(out["x"].number()));
-                //verify(round(y) == round(out["y"].number()));
-                //verify(round(in["x"].number()) == round(out["x"].number()));
-                //verify(round(in["y"].number()) == round(out["y"].number()));
+
+                verify(round(x) == round(out["x"].number()));
+                verify(round(y) == round(out["y"].number()));
+                verify(round(in["x"].number()) == round(out["x"].number()));
+                verify(round(in["y"].number()) == round(out["y"].number()));
             }
             {
                 double x = -73.01212;
@@ -2552,11 +2552,10 @@ namespace mongo {
                 BSONObj in = BSON("x" << x << "y" << y);
                 GeoHash h = conv.hash(in);
                 BSONObj out = conv.unhashToBSONObj(h);
-//hcj: comment out for trial
-                //verify(round(x) == round(out["x"].number()));
-                //verify(round(y) == round(out["y"].number()));
-                //verify(round(in["x"].number()) == round(out["x"].number()));
-                //verify(round(in["y"].number()) == round(out["y"].number()));
+                verify(round(x) == round(out["x"].number()));
+                verify(round(y) == round(out["y"].number()));
+                verify(round(in["x"].number()) == round(out["x"].number()));
+                verify(round(in["y"].number()) == round(out["y"].number()));
             }
             {
                 GeoHash h("0000");
@@ -2582,10 +2581,10 @@ namespace mongo {
             {
                 GeoHash a = conv.hash(1, 1);
                 GeoHash b = conv.hash(4, 5);
-                //verify(5 == (int)(conv.distanceBetweenHashes(a, b)));
+                verify(5 == (int)(conv.distanceBetweenHashes(a, b)));
                 a = conv.hash(50, 50);
                 b = conv.hash(42, 44);
-                //verify(round(10) == round(conv.distanceBetweenHashes(a, b)));
+                verify(round(10) == round(conv.distanceBetweenHashes(a, b)));
             }
             {
                 GeoHash x("0000");
@@ -2609,8 +2608,8 @@ namespace mongo {
                 BSONObj oa = a.wrap();
                 BSONObj ob = b.wrap();
                 BSONObj oc = c.wrap();
-                //verify(oa.woCompare(ob) < 0);
-                //verify(oa.woCompare(oc) < 0);
+                verify(oa.woCompare(ob) < 0);
+                verify(oa.woCompare(oc) < 0);
             }
             {
                 GeoHash x("000000");
@@ -2633,7 +2632,7 @@ namespace mongo {
             {
                 GeoHash a = conv.hash(50, 50);
                 GeoHash b = conv.hash(48, 54);
-                //verify(round(4.47214) == round(conv.distanceBetweenHashes(a, b)));
+                verify(round(4.47214) == round(conv.distanceBetweenHashes(a, b)));
             }
             {
                 Box b(Point(29.762283, -95.364271), Point(29.764283000000002, -95.36227099999999));
@@ -2671,8 +2670,8 @@ namespace mongo {
                         GeoHash h(x, y);
                         unsigned a, b;
                         h.unhash(&a, &b);
-                        //verify(a == x);
-                        //verify(b == y);
+                        verify(a == x);
+                        verify(b == y);
                     }
                     //cout << "fast: " << t.millis() << endl;
                 }
