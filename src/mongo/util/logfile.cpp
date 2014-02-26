@@ -231,7 +231,11 @@ namespace mongo {
 
         fassert( 16144, charsToWrite >= 0 );
         fassert( 16142, _fd >= 0 );
+
+// Disabling alignment test on PPC64 due to a 64kB page size on PPC64 instead of 4kB on x86
+#ifndef __PPC64__
         fassert( 16143, reinterpret_cast<ssize_t>( buf ) % g_minOSPageSizeBytes == 0 );  // aligned
+#endif
 
 #ifdef POSIX_FADV_DONTNEED
         const off_t pos = lseek(_fd, 0, SEEK_CUR); // doesn't actually seek, just get current position
