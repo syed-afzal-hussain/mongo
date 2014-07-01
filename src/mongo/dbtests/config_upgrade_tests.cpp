@@ -218,11 +218,16 @@ namespace mongo {
 
         // Zero version (no version doc)
         VersionType oldVersion;
+std::cerr << "getConfigVersion before" << std::endl;
         Status status = getConfigVersion(configSvr(), &oldVersion);
+std::cerr << "getConfigVersion after" << std::endl;
         ASSERT(status.isOK());
 
+std::cerr << "status.isOK after" << std::endl;
         ASSERT_EQUALS(oldVersion.getMinCompatibleVersion(), 0);
+std::cerr << "getMinCompatibleVersion after" << std::endl;
         ASSERT_EQUALS(oldVersion.getCurrentVersion(), 0);
+std::cerr << "getCurrentVersion after" << std::endl;
     }
 
     TEST_F(ConfigUpgradeTests, LegacyVersion) {

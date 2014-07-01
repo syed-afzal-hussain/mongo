@@ -182,7 +182,7 @@ mov 0,%0\n\
 #endif
 }
 
-#elif defined(AIX)
+#elif defined(_AIX)
 
 #include <sys/atomic_op.h>
 

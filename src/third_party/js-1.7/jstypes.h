@@ -317,9 +317,10 @@ typedef unsigned __int64 JSUint64;
 #elif defined(WIN32) && !defined(__GNUC__)
 typedef __int64  JSInt64;
 typedef unsigned __int64 JSUint64;
-#else
-typedef long long JSInt64;
-typedef unsigned long long JSUint64;
+#elif defined(_AIX)
+#include <sys/inttypes.h>
+typedef int64 JSInt64;
+typedef u_int64 JSUint64;
 #endif /* JS_BYTES_PER_LONG == 8 */
 #else  /* !JS_HAVE_LONG_LONG */
 typedef struct {

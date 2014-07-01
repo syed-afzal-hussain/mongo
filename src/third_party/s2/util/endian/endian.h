@@ -13,6 +13,11 @@
 #include "base/port.h"
 #include "base/int128.h"
 
+#if defined(__GNUCC__) || defined(_AIX)
+#define bswap_16 __builtin_bswap16
+#define bswap_32 __builtin_bswap32
+#endif
+
 inline uint64 gbswap_64(uint64 host_int) {
 #if defined(COMPILER_GCC3) && defined(__x86_64__)
   // Adapted from /usr/include/byteswap.h.

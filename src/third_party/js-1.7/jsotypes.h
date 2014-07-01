@@ -93,7 +93,10 @@ typedef JSIntn intn;
  * So we don't define these four types here to avoid conflicts in case
  * the code also includes sys/types.h.
  */
+/*
 #if defined(AIX) && defined(HAVE_SYS_INTTYPES_H)
+*/
+#if defined(_AIX) 
 #include <sys/inttypes.h>
 #else
 typedef JSInt64 int64;

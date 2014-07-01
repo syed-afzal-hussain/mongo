@@ -105,7 +105,7 @@ namespace mongo {
         return new WinSecureRandom();
     }
 
-#elif defined(__linux__) || defined(__sunos__) || defined(__APPLE__)
+#elif defined(__linux__) || defined(__sunos__) || defined(__APPLE__) || defined(_AIX)
 
     class InputStreamSecureRandom : public SecureRandom {
     public:

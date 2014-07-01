@@ -26,6 +26,8 @@
 #include "mongo/platform/compiler_msvc.h"
 #elif defined(__GNUC__)
 #include "mongo/platform/compiler_gcc.h"
+#elif defined(__xlC__)
+#include "mongo/platform/compiler_xlc.h"
 #else
 #error "Unsupported compiler family"
 #endif

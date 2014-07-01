@@ -8,7 +8,8 @@
 
 // MSVC++ 2005 thinks the header declaration was a definition, and
 // erroneously flags these as a duplicate definition.
-#ifdef COMPILER_MSVC
+// #ifdef COMPILER_MSVC 
+#if defined(COMPILER_MSVC) || defined(_AIX) 
 
 #define DEF_COMMON_LIMITS(Type)
 #define DEF_UNSIGNED_INT_LIMITS(Type)

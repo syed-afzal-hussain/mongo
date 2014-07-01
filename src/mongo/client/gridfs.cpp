@@ -67,6 +67,7 @@ namespace mongo {
 
     void GridFS::setChunkSize(unsigned int size) {
         massert( 13296 , "invalid chunk size is specified", (size != 0 ));
+
         _chunkSize = size;
     }
 

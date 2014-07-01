@@ -32,7 +32,7 @@ root_dir = dirname(File('SConscript').rfile().abspath)
 sys.path.append(join(root_dir, 'tools'))
 import js2c
 
-Import("env windows linux darwin solaris freebsd debugBuild")
+Import("env windows linux darwin solaris freebsd aix debugBuild")
 
 # pared-down copies of the equivalent structures in v8's SConstruct/SConscript:
 LIBRARY_FLAGS = {
@@ -63,6 +63,9 @@ LIBRARY_FLAGS = {
       'CCFLAGS':      ['-ansi', '-pedantic', '-mmacosx-version-min=10.4'],
     },
     'os:freebsd': {
+      'CCFLAGS':      ['-ansi'],
+    },
+    'os:aix': {
       'CCFLAGS':      ['-ansi'],
     },
     'os:solaris': {
@@ -243,11 +246,31 @@ SOURCES = {
     x64/regexp-macro-assembler-x64.cc
     x64/stub-cache-x64.cc
     """),
+  'arch:ppc': Split("""
+    ppc/assembler-ppc.cc
+    ppc/builtins-ppc.cc
+    ppc/code-stubs-ppc.cc
+    ppc/codegen-ppc.cc
+    ppc/cpu-ppc.cc
+    ppc/debug-ppc.cc
+    ppc/deoptimizer-ppc.cc
+    ppc/disasm-ppc.cc
+    ppc/frames-ppc.cc
+    ppc/full-codegen-ppc.cc
+    ppc/ic-ppc.cc
+    ppc/lithium-codegen-ppc.cc
+    ppc/lithium-gap-resolver-ppc.cc
+    ppc/lithium-ppc.cc
+    ppc/macro-assembler-ppc.cc
+    ppc/regexp-macro-assembler-ppc.cc
+    ppc/stub-cache-ppc.cc
+    """),
   'os:freebsd': ['platform-freebsd.cc', 'platform-posix.cc'],
   'os:linux':   ['platform-linux.cc', 'platform-posix.cc'],
   'os:macos':   ['platform-macos.cc', 'platform-posix.cc'],
   'os:solaris': ['platform-solaris.cc', 'platform-posix.cc'],
   'os:nullos':  ['platform-nullos.cc'],
+  'os:aix':     ['platform-posix.cc'],
   'os:win32':   ['platform-win32.cc', 'win32-math.cc'],
   'mode:release': [],
   'mode:debug': [
@@ -294,6 +317,10 @@ def get_options():
         arch_string = 'arch:x64'
     elif processor == 'amd64':
         arch_string = 'arch:x64'
+    elif processor == 'powerpc':
+        arch_string = 'arch:ppc'
+    elif processor == 'powerpc64':
+        arch_string = 'arch:ppc64'
     else:
         assert False, "Unsupported architecture: " + processor
 
@@ -307,6 +334,8 @@ def get_options():
         os_string = 'os:freebsd'
     elif solaris:
         os_string = 'os:solaris'
+    elif aix:
+        os_string = 'os:aix'
     else:
         os_string = 'os:nullos'
 

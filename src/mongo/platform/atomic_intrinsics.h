@@ -44,6 +44,8 @@
 #include "mongo/platform/atomic_intrinsics_win32.h"
 #elif defined(__GNUC__)
 #include "mongo/platform/atomic_intrinsics_gcc.h"
+#elif defined(__xlC__)
+#include "mongo/platform/atomic_intrinsics_xlc.h"
 #else
 #error "Unsupported os/compiler family"
 #endif

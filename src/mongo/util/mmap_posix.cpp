@@ -81,13 +81,23 @@ namespace mongo {
         default: verify(0);
         }
         
+#if !defined(_AIX)
         if ( madvise(_p,_len,advice ) ) {
             error() << "madvise failed: " << errnoWithDescription() << endl;
         }
+#else
+        if ( madvise((caddr_t)_p,_len,advice ) ) {
+            error() << "madvise failed: " << errnoWithDescription() << endl;
+        }
+#endif
         
     }
     MAdvise::~MAdvise() { 
+#if !defined(_AIX)
         madvise(_p,_len,MADV_NORMAL);
+#else
+        madvise((caddr_t)_p,_len,MADV_NORMAL);
+#endif
     }
 #endif
 
@@ -127,9 +137,15 @@ namespace mongo {
 #warning madvise not supported on solaris yet
 #else
         if ( options & SEQUENTIAL ) {
+#if !defined(_AIX)
             if ( madvise( view , length , MADV_SEQUENTIAL ) ) {
                 warning() << "map: madvise failed for " << filename << ' ' << errnoWithDescription() << endl;
             }
+#else
+            if ( madvise( (caddr_t)view , length , MADV_SEQUENTIAL ) ) {
+                warning() << "map: madvise failed for " << filename << ' ' << errnoWithDescription() << endl;
+            }
+#endif
         }
 #endif
 

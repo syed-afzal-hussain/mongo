@@ -29,7 +29,7 @@ namespace mongo {
 }  // namespace mongo
 
 #elif defined(_MSC_VER) && _MSC_VER >= 1500
-
+#define  __IBMCPP_TR1__ 1
 #include <unordered_set>
 
 namespace mongo {
@@ -49,6 +49,15 @@ namespace mongo {
 namespace mongo {
 
     using std::tr1::unordered_set;
+
+}  // namespace mongo
+#elif defined(_AIX)
+
+#include <unordered_set>
+
+namespace mongo {
+
+    using std::unordered_set;
 
 }  // namespace mongo
 

@@ -52,6 +52,10 @@
 #include <arpa/inet.h>
 #endif
 
+#ifdef _AIX
+#include <net/bpf.h>
+#endif
+
 #include <iostream>
 #include <map>
 #include <string>

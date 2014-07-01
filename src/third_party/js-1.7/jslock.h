@@ -190,7 +190,7 @@ extern JSBool js_IsScopeLocked(JSContext *cx, JSScope *scope);
        (defined(__GNUC__) && defined(__i386__)) ||                            \
        ((defined(__USLC__) || defined(_SCO_DS)) && defined(i386)) ||          \
        (defined(SOLARIS) && defined(sparc) && defined(ULTRA_SPARC)) ||        \
-       defined(AIX) )
+       defined(_AIX) )
 
 #define NSPR_LOCK 1
 

@@ -250,6 +250,7 @@ boostLibs = [ "thread" , "filesystem" , "program_options", "system" ]
 
 onlyServer = len( COMMAND_LINE_TARGETS ) == 0 or ( len( COMMAND_LINE_TARGETS ) == 1 and str( COMMAND_LINE_TARGETS[0] ) in [ "mongod" , "mongos" , "test" ] )
 nix = False
+nixlc = False
 linux = False
 linux64  = False
 darwin = False
@@ -257,6 +258,7 @@ windows = False
 freebsd = False
 openbsd = False
 solaris = False
+aix = False
 bigendian = True # For snappy
 force32 = has_option( "force32" ) 
 force64 = has_option( "force64" )
@@ -312,30 +314,12 @@ env = Environment( BUILD_DIR=variantDir,
                    CONFIGURELOG = '#' + scons_data_dir + '/config.log'
                    )
 
-# This could be 'if solaris', but unfortuantely that variable hasn't been set yet.
-if "sunos5" == os.sys.platform:
-    # SERVER-9890: On Solaris, SCons preferentially loads the sun linker tool 'sunlink' when
-    # using the 'default' tools as we do above. The sunlink tool sets -G as the flag for
-    # creating a shared library. But we don't want that, since we always drive our link step
-    # through CC or CXX. Instead, we want to let the compiler map GCC's '-shared' flag to the
-    # appropriate linker specs that it has compiled in. We could (and should in the future)
-    # select an empty set of tools above and then enable them as appropriate on a per platform
-    # basis. Until then the simplest solution, as discussed on the scons-users mailing list,
-    # appears to be to simply explicitly run the 'gnulink' tool to overwrite the Environment
-    # changes made by 'sunlink'. See the following thread for more detail:
-    #  http://four.pairlist.net/pipermail/scons-users/2013-June/001486.html
-    env.Tool('gnulink')
-
-
 env['_LIBDEPS'] = '$_LIBDEPS_OBJS'
 
 if has_option('mute'):
     env.Append( CCCOMSTR = "Compiling $TARGET" )
     env.Append( CXXCOMSTR = env["CCCOMSTR"] )
-    env.Append( SHCCCOMSTR = "Compiling $TARGET" )
-    env.Append( SHCXXCOMSTR = env["SHCCCOMSTR"] )
     env.Append( LINKCOMSTR = "Linking $TARGET" )
-    env.Append( SHLINKCOMSTR = env["LINKCOMSTR"] )
     env.Append( ARCOMSTR = "Generating library $TARGET" )
 
 if has_option('mongod-concurrency-level'):
@@ -482,6 +466,13 @@ if force32:
     processor = "i386"
 if force64:
     processor = "x86_64"
+
+if "aix" in platform.lower():
+    processor = "powerpc"
+    if force32:
+        processor = "powerpc"
+    if force64:
+        processor = "powerpc64"
 
 env['PROCESSOR_ARCHITECTURE'] = processor
 
@@ -691,32 +682,61 @@ elif "win32" == os.sys.platform:
     env.Append( EXTRACPPPATH=["#/../winpcap/Include"] )
     env.Append( EXTRALIBPATH=["#/../winpcap/Lib"] )
 
+elif os.sys.platform.startswith('aix'):
+    nix = True
+    # if "xlc" in env["CXX"].lower():
+    #     nixlc = True
+    aix = True
+    env.Append( LIBS=['m'] )
+    #env.Append( CFLAGS=["-mcmodel=large"] )
 else:
     print( "No special config for [" + os.sys.platform + "] which probably means it won't work" )
 
 env['STATIC_AND_SHARED_OBJECTS_ARE_THE_SAME'] = 1
-if nix:
+if nix  and ( nixlc is False):
 
     if has_option( "distcc" ):
         env["CXX"] = "distcc " + env["CXX"]
 
     # -Winvalid-pch Warn if a precompiled header (see Precompiled Headers) is found in the search path but can't be used.
-    env.Append( CCFLAGS=["-fPIC",
-                         "-fno-strict-aliasing",
-                         "-ggdb",
-                         "-pthread",
-                         "-Wsign-compare",
-                         "-Wno-unknown-pragmas",
-                         "-Winvalid-pch"] )
+    if nixlc is True:
+        env.Append( CCFLAGS=["-qpic=large",
+                             "-qalias=noansi",
+                             "-g",
+                             "-pthread",
+                             "-qinfo=all"] )
+    else:
+        env.Append( CCFLAGS=["-fPIC",
+                             "-fno-strict-aliasing",
+			     "-faggressive-loop-optimizations",
+                             "-ggdb",
+                             "-pthread",
+                             "-Wall",
+                             "-Wsign-compare",
+                             "-Wno-unknown-pragmas",
+                             "-Wno-unused-local-typedefs",
+                             "-Winvalid-pch"] )
+
     # env.Append( " -Wconversion" ) TODO: this doesn't really work yet
+    # hcj: remove -Werror to make it compiled
     if linux:
-        env.Append( CCFLAGS=["-Werror", "-pipe"] )
+        env.Append( CCFLAGS=["-pipe"] )
         if not has_option('clang'):
             env.Append( CCFLAGS=["-fno-builtin-memcmp"] ) # glibc's memcmp is faster than gcc's
 
     env.Append( CPPDEFINES=["_FILE_OFFSET_BITS=64"] )
-    env.Append( CXXFLAGS=["-Wnon-virtual-dtor", "-Woverloaded-virtual"] )
-    env.Append( LINKFLAGS=["-fPIC", "-pthread",  "-rdynamic"] )
+    if nixlc is True:
+        env.Append( LINKFLAGS=["-qpic=large", "-pthread",  "-brtl", "-bdynamic"] )
+    else:
+        env.Append( CXXFLAGS=["-faggressive-loop-optimizations", "-Wnon-virtual-dtor", "-Woverloaded-virtual"] )
+        if aix is True:
+            env.Append( LINKFLAGS=["-fPIC", "-pthread", "-Wl,-bexpall,-bbigtoc", "-lbsd"] )
+#            env.Append( LINKFLAGS=["-Lbuild/aix6/64/cc__usr_bin_gcc/cxx__usr_bin_g++/usesm/mongo/s", "-lbase"] )
+#            env.Append( LINKFLAGS=["-Lbuild/aix6/64/cc__usr_bin_gcc/cxx__usr_bin_g++/usesm/mongo", "-lprocessinfo"] )
+
+        else:
+            env.Append( LINKFLAGS=["-fPIC", "-pthread",  "-rdynamic"] )
+
     env.Append( LIBS=[] )
 
     #make scons colorgcc friendly
@@ -726,26 +746,40 @@ if nix:
         except KeyError:
             pass
 
+    if linux and has_option( "sharedclient" ):
+        env.Append( LINKFLAGS=" -Wl,--as-needed -Wl,-zdefs " )
+
     if linux and has_option( "gcov" ):
         env.Append( CXXFLAGS=" -fprofile-arcs -ftest-coverage " )
         env.Append( LINKFLAGS=" -fprofile-arcs -ftest-coverage " )
 
     if debugBuild:
-        env.Append( CCFLAGS=["-O0", "-fstack-protector"] )
-        env['ENV']['GLIBCXX_FORCE_NEW'] = 1; # play nice with valgrind
+#        if unixlc is True:
+#            env.Append( CCFLAGS=["-O3", "-qstackprotect=all"] )
+#        else:
+            env.Append( CCFLAGS=["-O1"] )
+            env['ENV']['GLIBCXX_FORCE_NEW'] = 1; # play nice with valgrind
     else:
-        env.Append( CCFLAGS=["-O3"] )
+        env.Append( CCFLAGS=["-O1"] )
 
     if debugLogging:
         env.Append( CPPDEFINES=["_DEBUG"] );
 
     if force64:
-        env.Append( CCFLAGS="-m64" )
-        env.Append( LINKFLAGS="-m64" )
+#        if unixlc is True:
+#            env.Append( CCFLAGS="-q64" )
+#            env.Append( LINKFLAGS="-q64" )
+#        else:
+            env.Append( CCFLAGS="-maix64" )
+            env.Append( LINKFLAGS="-maix64" )
 
     if force32:
-        env.Append( CCFLAGS="-m32" )
-        env.Append( LINKFLAGS="-m32" )
+        if unixlc is True:
+            env.Append( CCFLAGS="-q32" )
+            env.Append( LINKFLAGS="-q32" )
+        else:
+            env.Append( CCFLAGS="-m32" )
+            env.Append( LINKFLAGS="-m32" )
 
     if has_option( "gdbserver" ):
         env.Append( CPPDEFINES=["USE_GDBSERVER"] )
@@ -839,8 +873,7 @@ def doConfigure(myenv):
 
     if (conf.CheckCXXHeader( "execinfo.h" ) and
         conf.CheckDeclaration('backtrace', includes='#include <execinfo.h>') and
-        conf.CheckDeclaration('backtrace_symbols', includes='#include <execinfo.h>') and
-        conf.CheckDeclaration('backtrace_symbols_fd', includes='#include <execinfo.h>')):
+        conf.CheckDeclaration('backtrace_symbols', includes='#include <execinfo.h>')):
 
         myenv.Append( CPPDEFINES=[ "MONGO_HAVE_EXECINFO_BACKTRACE" ] )
 
@@ -897,7 +930,6 @@ def doConfigure(myenv):
             Exit( 1 )
 
         myenv.Append( CPPDEFINES=[ "HEAP_CHECKING" ] )
-        myenv.Append( CCFLAGS=["-fno-omit-frame-pointer"] )
 
     # ask each module to configure itself and the build environment.
     moduleconfig.configure_modules(mongo_modules, conf, env)
@@ -1123,6 +1155,19 @@ if len(COMMAND_LINE_TARGETS) > 0 and 'uninstall' in COMMAND_LINE_TARGETS:
     BUILD_TARGETS.remove("uninstall")
     BUILD_TARGETS.append("install")
 
+clientEnv = env.Clone()
+clientEnv['CPPDEFINES'].remove('MONGO_EXPOSE_MACROS')
+
+if not use_system_version_of_library("boost"):
+    clientEnv.Append(LIBS=['boost_thread', 'boost_filesystem', 'boost_system'])
+    clientEnv.Prepend(LIBPATH=['$BUILD_DIR/third_party/boost/'])
+
+
+#if aix is True:
+#    env.Append( LINKFLAGS=["-Lbuild/aix6/64/cc__usr_bin_gcc/cxx__usr_bin_g++/usesm/mongo/s", "-lbase"] )
+
+
+
 module_sconscripts = moduleconfig.get_module_sconscripts(mongo_modules)
 
 # The following symbols are exported for use in subordinate SConscript files.
@@ -1134,12 +1179,13 @@ module_sconscripts = moduleconfig.get_module_sconscripts(mongo_modules)
 # conditional decision making that hasn't been moved up to this SConstruct file,
 # and they are exported here, as well.
 Export("env")
+Export("clientEnv")
 Export("shellEnv")
 Export("testEnv")
 Export("has_option use_system_version_of_library")
 Export("installSetup")
 Export("usesm usev8")
-Export("darwin windows solaris linux freebsd nix")
+Export("darwin windows solaris linux freebsd aix nix")
 Export('module_sconscripts')
 Export("debugBuild")
 Export("enforce_glibc")

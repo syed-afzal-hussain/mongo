@@ -34,6 +34,7 @@ namespace {
             grid.setChunkSize( 5 );
 
             ASSERT_EQUALS( 5U, grid.getChunkSize() );
+
             ASSERT_THROWS( grid.setChunkSize( 0 ), MsgAssertionException );
             ASSERT_EQUALS( 5U, grid.getChunkSize() );
         }

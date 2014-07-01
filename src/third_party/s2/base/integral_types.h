@@ -25,7 +25,11 @@ typedef int                 int32;
 #ifdef COMPILER_MSVC
 typedef __int64             int64;
 #else
+#if defined(_AIX) && defined(__64BIT__)
+typedef long                int64;
+#else
 typedef long long           int64;
+#endif
 #endif /* COMPILER_MSVC */
 
 // NOTE: unsigned types are DANGEROUS in loops and other arithmetical

@@ -124,6 +124,24 @@ namespace mongo {
     void AtomicUInt::signedAdd(int by) {
         atomic_int_helper(&x, by);
     }
+#elif defined(_AIX)
+    inline void AtomicUInt::set(unsigned newX) { __sync_synchronize(); x = newX; }
+    AtomicUInt AtomicUInt::operator++() {
+        return __sync_add_and_fetch(&x, 1);
+    }
+    AtomicUInt AtomicUInt::operator++(int) {
+        return __sync_fetch_and_add(&x, 1);
+    }
+    AtomicUInt AtomicUInt::operator--() {
+        return __sync_add_and_fetch(&x, -1);
+    }
+    AtomicUInt AtomicUInt::operator--(int) {
+        return __sync_fetch_and_add(&x, -1);
+    }
+    void AtomicUInt::signedAdd(int by) {
+        __sync_fetch_and_add(&x, by);
+    }
+
 #else
 #  error "unsupported compiler or platform"
 #endif

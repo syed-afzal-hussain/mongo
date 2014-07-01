@@ -33,7 +33,7 @@
 
 #ifndef _WIN32
 # ifndef __sunos__
-#  include <ifaddrs.h>
+//#  include <ifaddrs.h>
 # endif
 # include <sys/resource.h>
 # include <sys/stat.h>

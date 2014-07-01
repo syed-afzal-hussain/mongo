@@ -15,21 +15,21 @@
 
 #include "mongo/platform/strcasestr.h"
 
-#if defined(__sunos__)
+#if defined(__sunos__) || defined(_AIX)
 #include <dlfcn.h>
 
 #include "mongo/base/init.h"
 #include "mongo/base/status.h"
 #endif
 
-#if defined(_WIN32) || defined(__sunos__)
+#if defined(_WIN32) || defined(__sunos__) || defined(_AIX)
 
 #include <algorithm>
 #include <cctype>
 #include <cstring>
 #include <string>
 
-#if defined(__sunos__)
+#if defined(__sunos__) || defined(_AIX)
 #define STRCASESTR_EMULATION_NAME strcasestr_emulation
 #else
 #define STRCASESTR_EMULATION_NAME strcasestr
@@ -67,7 +67,7 @@ namespace pal {
         return location ? (haystack + (location - haystackLowerStart)) : NULL;
     }
 
-#if defined(__sunos__)
+#if defined(__sunos__) || defined(_AIX)
 
     typedef const char* (*StrCaseStrFunc)(const char* haystack, const char* needle);
     static StrCaseStrFunc strcasestr_switcher = mongo::pal::strcasestr_emulation;
@@ -83,7 +83,7 @@ namespace pal {
 
 #endif // #if defined(_WIN32) || defined(__sunos__)
 
-#if defined(__sunos__)
+#if defined(__sunos__) || defined(_AIX)
 
 namespace mongo {
 

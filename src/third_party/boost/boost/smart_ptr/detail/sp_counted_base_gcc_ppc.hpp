@@ -40,11 +40,10 @@ inline void atomic_increment( int * pw )
 
     __asm__
     (
-        "0:\n\t"
         "lwarx %1, 0, %2\n\t"
         "addi %1, %1, 1\n\t"
         "stwcx. %1, 0, %2\n\t"
-        "bne- 0b":
+        "bne- $-12":
 
         "=m"( *pw ), "=&b"( tmp ):
         "r"( pw ), "m"( *pw ):
@@ -61,11 +60,10 @@ inline int atomic_decrement( int * pw )
     __asm__ __volatile__
     (
         "sync\n\t"
-        "0:\n\t"
         "lwarx %1, 0, %2\n\t"
         "addi %1, %1, -1\n\t"
         "stwcx. %1, 0, %2\n\t"
-        "bne- 0b\n\t"
+        "bne- $-12\n\t"
         "isync":
 
         "=m"( *pw ), "=&b"( rv ):
@@ -85,14 +83,12 @@ inline int atomic_conditional_increment( int * pw )
 
     __asm__
     (
-        "0:\n\t"
         "lwarx %1, 0, %2\n\t"
         "cmpwi %1, 0\n\t"
-        "beq 1f\n\t"
+        "beq $+8\n\t"
         "addi %1, %1, 1\n\t"
-        "1:\n\t"
         "stwcx. %1, 0, %2\n\t"
-        "bne- 0b":
+        "bne- $-20":
 
         "=m"( *pw ), "=&b"( rv ):
         "r"( pw ), "m"( *pw ):

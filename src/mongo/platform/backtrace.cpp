@@ -13,7 +13,7 @@
  *    limitations under the License.
  */
 
-#if !defined(_WIN32)
+#if !defined(_WIN32) 
 #if defined(__sunos__) || !defined(MONGO_HAVE_EXECINFO_BACKTRACE)
 
 #include "mongo/platform/backtrace.h"
@@ -68,6 +68,7 @@ namespace {
     // to Linux's display, but slightly different.
     //
     int addrtosymstr(void* address, char* outputBuffer, int outputBufferSize) {
+/*
         Dl_info_t symbolInfo;
         if (dladdr(address, &symbolInfo) == 0) {    // no info: "[address]"
             return snprintf(outputBuffer, outputBufferSize, "[0x%p]", address);
@@ -89,12 +90,15 @@ namespace {
                         reinterpret_cast<char*>(reinterpret_cast<char*>(address) -
                                                 reinterpret_cast<char*>(symbolInfo.dli_saddr)),
                         address);
+*/
+    return snprintf(outputBuffer, outputBufferSize, "[0x%p]", address);
     }
 } // namespace
 
     typedef int (*WalkcontextCallbackFunc)(uintptr_t address, int signalNumber, void* thisContext);
 
     int backtrace_emulation(void** array, int size) {
+	/* src/mongo/platform/backtrace.cpp:109:57: error: 'walkcontext' was not declared in this scope
         WalkcontextCallback walkcontextCallback(reinterpret_cast<uintptr_t*>(array), size);
         ucontext_t context;
         if (getcontext(&context) != 0) {
@@ -107,6 +111,7 @@ namespace {
         if (wcReturn == 0) {
             return walkcontextCallback.getCount();
         }
+	*/
         return 0;
     }
 

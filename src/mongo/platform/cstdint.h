@@ -26,6 +26,9 @@
 #elif defined(__GNUC__)
 #include <stdint.h>
 #define _MONGO_STDINT_NAMESPACE
+#elif defined(__xlC__)
+#include <stdint.h>
+#define _MONGO_STDINT_NAMESPACE
 #else
 #error "Unsupported compiler family"
 #endif

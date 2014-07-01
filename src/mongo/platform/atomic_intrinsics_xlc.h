@@ -17,7 +17,7 @@
  * Implementation of the AtomicIntrinsics<T>::* operations for IA-32 and AMD64 systems using a
  * GCC-compatible compiler toolchain.
  */
-/* re-implement it on Powerpc--hcj */
+
 #pragma once
 
 #include <boost/utility.hpp>
@@ -25,7 +25,7 @@
 namespace mongo {
 
     /**
-     * Instantiation of AtomicIntrinsics<> for all word types T where sizeof<T> <= sizeof(void *).
+     * Instantiation of AtomicIntrinsics<> for all word types T where sizeof<T> <= sizeof (void *).
      *
      * On 32-bit systems, this handles 8-, 16- and 32-bit word types.  On 64-bit systems,
      * it handles 8-, 16, 32- and 64-bit types.
@@ -33,39 +33,36 @@ namespace mongo {
     template <typename T, typename IsTLarge=void>
     class AtomicIntrinsics {
     public:
-#if 0
+
         static T compareAndSwap(volatile T* dest, T expected, T newValue) {
-        T result;
-        __asm__ __volatile__ (
-           "lwarx %0, 0, %1\n\t"
-           "xor. %0, %3, %0\n\t"
-           "bne $+16\n\t"
-           "stwcx. %2, 0, %1\n\t"
-           "bne- $-16\n\t"
-           "isync\n\t"
-        : "=&r"(result)
-        : "r"(dest), "r"(newValue), "r"(expected)
-        : "cr0");
-        return result;
+
+            T result;
+            asm volatile ("lock cmpxchg %[src], %[dest]"
+                          : [dest] "+m" (*dest),
+                            "=a" (result)
+                          : [src] "r" (newValue),
+                            "a" (expected)
+                          : "memory", "cc");
+            return result;
         }
-#else
-        static T compareAndSwap(volatile T* dest, T expected, T newValue) {
-        return __sync_val_compare_and_swap(dest,  expected, newValue);
-        }
-#endif
+
         static T swap(volatile T* dest, T newValue) {
 
-        T expected;
-        T actual;
-            do {
-                expected = *dest;
-                actual = compareAndSwap(dest, expected, newValue);
-            } while (actual != expected);
-            return actual;
+            T result = newValue;
+            // No need for "lock" prefix on "xchg".
+            asm volatile ("xchg %[r], %[dest]"
+                          : [dest] "+m" (*dest),
+                            [r] "+r" (result)
+                          :
+                          : "memory");
+            return result;
         }
 
         static T load(volatile const T* value) {
-            return compareAndSwap(const_cast<volatile T*>(value), T(0), T(0));
+            asm volatile ("mfence" ::: "memory");
+            T result = *value;
+            asm volatile ("mfence" ::: "memory");
+            return result;
         }
 
         static T loadRelaxed(volatile const T* value) {
@@ -73,29 +70,25 @@ namespace mongo {
         }
 
         static void store(volatile T* dest, T newValue) {
-            swap(dest, newValue);
+            asm volatile ("mfence" ::: "memory");
+            *dest = newValue;
+            asm volatile ("mfence" ::: "memory");
         }
-#if 0
+
         static T fetchAndAdd(volatile T* dest, T increment) {
 
-            T expected;
-            T actual;
-            do {
-                expected = load(dest);
-                actual = compareAndSwap(dest, expected, expected + increment);
-            } while (actual != expected);
-            return actual;
+            T result = increment;
+            asm volatile ("lock xadd %[src], %[dest]"
+                          : [dest] "+m" (*dest),
+                            [src] "+r" (result)
+                          :
+                          : "memory", "cc");
+            return result;
         }
-#else
-        static T fetchAndAdd(volatile T* dest, T increment) {
 
-            return __sync_fetch_and_add(dest, increment);
-        }
-#endif
     private:
         AtomicIntrinsics();
         ~AtomicIntrinsics();
-
     };
 
     /**
@@ -110,27 +103,31 @@ namespace mongo {
     template <typename T>
     class AtomicIntrinsics<T, typename boost::disable_if_c<sizeof(T) <= sizeof(void*)>::type> {
     public:
-#if 0
         static T compareAndSwap(volatile T* dest, T expected, T newValue) {
-        T result;
-        __asm__ __volatile__ (
-           "lwarx %0, 0, %1\n\t"
-           "xor. %0, %3, %0\n\t"
-           "bne $+16\n\t"
-           "stwcx. %2, 0, %1\n\t"
-           "bne- $-16\n\t"
-           "isync\n\t"
-        : "=&r"(result)
-        : "r"(dest), "r"(newValue), "r"(expected)
-        : "cr0");
-        return result;
+            T result = expected;
+            asm volatile ("push %%eax\n"
+                          "push %%ebx\n"
+                          "push %%ecx\n"
+                          "push %%edx\n"
+                          "mov (%%edx), %%ebx\n"
+                          "mov 4(%%edx), %%ecx\n"
+                          "mov (%%edi), %%eax\n"
+                          "mov 4(%%edi), %%edx\n"
+                          "lock cmpxchg8b (%%esi)\n"
+                          "mov %%eax, (%%edi)\n"
+                          "mov %%edx, 4(%%edi)\n"
+                          "pop %%edx\n"
+                          "pop %%ecx\n"
+                          "pop %%ebx\n"
+                          "pop %%eax\n"
+                          :
+                          : "S" (dest),
+                            "D" (&result),
+                            "d" (&newValue)
+                          : "memory", "cc");
+            return result;
         }
-#else
-        static T compareAndSwap(volatile T* dest, T expected, T newValue) {
-        T result;
-        return __sync_val_compare_and_swap(dest,  expected, newValue);
-        }
-#endif
+
         static T swap(volatile T* dest, T newValue) {
 
         T expected;
@@ -150,7 +147,6 @@ namespace mongo {
             swap(dest, newValue);
         }
 
-#if 0
         static T fetchAndAdd(volatile T* dest, T increment) {
 
             T expected;
@@ -161,12 +157,6 @@ namespace mongo {
             } while (actual != expected);
             return actual;
         }
-#else
-        static T fetchAndAdd(volatile T* dest, T increment) {
-
-            return __sync_fetch_and_add(dest, increment);
-        }
-#endif
 
     private:
         AtomicIntrinsics();

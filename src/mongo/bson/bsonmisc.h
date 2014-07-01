@@ -171,7 +171,7 @@ namespace mongo {
         StringData ns;
         OID oid;
     };
-
+#undef BSIZE
     extern Labeler::Label GT;
     extern Labeler::Label GTE;
     extern Labeler::Label LT;

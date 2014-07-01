@@ -52,6 +52,15 @@ namespace mongo {
 
 }  // namespace mongo
 
+#elif defined(_AIX)
+#define  __IBMCPP_TR1__ 1
+#include <unordered_map>
+
+namespace mongo {
+
+    using std::unordered_map;
+
+}  // 
 #else
 #error "Compiler's standard library does not provide a C++ unordered_map implementation."
 #endif

@@ -216,7 +216,7 @@ extern double fd_floor __P((double));
 extern double fd_log __P((double));
 extern double fd_pow __P((double, double));
 
-#elif defined(AIX)
+#elif defined(_AIX)
 
 #define fd_acos acos
 #define fd_asin asin
