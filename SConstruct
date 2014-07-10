@@ -149,6 +149,7 @@ add_option( "static-libstdc++" , "statically link libstdc++" , 0 , False )
 # base compile flags
 add_option( "64" , "whether to force 64 bit" , 0 , True , "force64" )
 add_option( "32" , "whether to force 32 bit" , 0 , True , "force32" )
+add_option( "31" , "whether to force 31 bit for s390x" , 0 , True , "force31" )
 
 add_option( "cxx", "compiler to use" , 1 , True )
 add_option( "cc", "compiler to use for c" , 1 , True )
@@ -258,6 +259,7 @@ freebsd = False
 openbsd = False
 solaris = False
 bigendian = True # For snappy
+force31 = has_option( "force31" )
 force32 = has_option( "force32" ) 
 force64 = has_option( "force64" )
 if not force64 and not force32 and os.getcwd().endswith( "mongo-64" ):
@@ -550,6 +552,10 @@ elif os.sys.platform.startswith("linux"):
     if has_option( "static-libstdc++" ):
         env.Append( LINKFLAGS=" -static-libstdc++ " )
 
+    if os.uname()[4] == "s390x":
+        env.Prepend(CPPDEFINES=[ "_BIG_ENDIAN=1" ] )
+        env.Prepend(CPPDEFINES=[ "__BIG_ENDIAN__=1" ] )
+
 elif "sunos5" == os.sys.platform:
      nix = True
      solaris = True
@@ -746,6 +752,10 @@ if nix:
     if force32:
         env.Append( CCFLAGS="-m32" )
         env.Append( LINKFLAGS="-m32" )
+
+    if force31:
+        env.Append( CCFLAGS="-m31" )
+        env.Append( LINKFLAGS="-m31" )
 
     if has_option( "gdbserver" ):
         env.Append( CPPDEFINES=["USE_GDBSERVER"] )
