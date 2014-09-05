@@ -171,14 +171,14 @@ namespace mongo {
         StringData ns;
         OID oid;
     };
-#undef BSIZE
+
     extern Labeler::Label GT;
     extern Labeler::Label GTE;
     extern Labeler::Label LT;
     extern Labeler::Label LTE;
     extern Labeler::Label NE;
     extern Labeler::Label NIN;
-    extern Labeler::Label BSIZE;
+    extern Labeler::Label BYTESIZE;
 
 
     // $or helper: OR(BSON("x" << GT << 7), BSON("y" << LT << 6));

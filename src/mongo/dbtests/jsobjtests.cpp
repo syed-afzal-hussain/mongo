@@ -1325,7 +1325,7 @@ namespace JsobjTests {
                 return BSON( "a" << BSON( "$size" << 4 ) );
             }
             BSONObj actual() {
-                return BSON( "a" << mongo::BSIZE << 4 );
+                return BSON( "a" << mongo::BYTESIZE << 4 );
             }
         };
 
