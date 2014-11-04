@@ -36,6 +36,13 @@ COMPILER VERSIONS
 Mongo has been tested with GCC 4.x and Visual Studio 2008 and 2010.  Older versions
 of GCC may not be happy.
 
+LINUX ON POWER
+--------------
+
+To build MongoDB for Linux on IBM Power Systems, you need to install v8 separately (it can be downloaded from https://github.com/andrewlow/v8ppc ). Then run the following:
+
+    $ scons all -j4 --sharedclient=SHAREDCLIENT --use-system-tcmalloc --use-system-v8 --prefix=/usr/lib --extrapath=/lib --usev8 --nostrip --ssl --full
+
 WINDOWS
 --------------
 
