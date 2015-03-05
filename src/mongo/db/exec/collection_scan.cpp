@@ -132,6 +132,7 @@ namespace mongo {
         WorkingSetMember* member = _workingSet->get(id);
         member->loc = nextLoc;
         member->obj = member->loc.obj();
+        log() << "run to here collection_scan.cpp line 134;id is " <<id<<std::endl;
         member->state = WorkingSetMember::LOC_AND_UNOWNED_OBJ;
 
         ++_specificStats.docsTested;

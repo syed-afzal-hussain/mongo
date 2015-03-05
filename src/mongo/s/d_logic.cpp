@@ -137,7 +137,7 @@ namespace mongo {
         received.addToBSON( b, "yourVersion" );
 
         b.appendBinData( "msg" , m.header()->len , bdtCustom , (char*)(m.singleData()) );
-        //LOG(2) << "writing back msg with len: " << m.header()->len << " op: " << m.operation() << endl;
+        LOG(2) << "writing back msg with len: " << m.header()->len << " op: " << m.operation() << endl;
         
         // we pass the builder to queueWriteBack so that it can select the writebackId
         // this is important so that the id is guaranteed to be ascending 

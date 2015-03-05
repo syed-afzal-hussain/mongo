@@ -1183,8 +1183,9 @@ namespace mongo {
 
         b.appendNum( reservedFlags );
         b.appendStr( ns );
-        for( vector< BSONObj >::const_iterator i = v.begin(); i != v.end(); ++i )
+        for( vector< BSONObj >::const_iterator i = v.begin(); i != v.end(); ++i ) {
             i->appendSelfToBufBuilder( b );
+        }
 
         toSend.setData( dbInsert, b.buf(), b.len() );
 

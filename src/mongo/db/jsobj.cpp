@@ -195,9 +195,9 @@ namespace mongo {
             break;
         case BinData: {
             int len = little<int>::ref( value() );
-            BinDataType type = BinDataType( *reinterpret_cast<const signed char*>( value() + 4 ) );
+            BinDataType type = BinDataType( *reinterpret_cast<const unsigned char*>( value() + 4 ) );
             s << "{ \"$binary\" : \"";
-            const char *start = reinterpret_cast<const char*>( value() ) + sizeof( int ) + 1;
+            char *start = ( char * )( value() ) + sizeof( int ) + 1;
             base64::encode( s , start , len );
             s << "\", \"$type\" : \"" << hex;
             s.width( 2 );

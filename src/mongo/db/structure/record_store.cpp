@@ -37,7 +37,6 @@
 #include "mongo/db/pdfile.h" // XXX-ERH
 
 namespace mongo {
-
     RecordStore::RecordStore( const StringData& ns )
         : _ns( ns.toString() ) {
     }
@@ -99,8 +98,9 @@ namespace mongo {
         fassert( 17210, r->lengthWithHeaders() >= lenWHdr );
 
         // copy the data
-        r = reinterpret_cast<Record*>( getDur().writingPtr(r, lenWHdr) );
+        r = reinterpret_cast<Record*>( getDur().writingPtr(r, lenWHdr) );		
         memcpy( r->data(), data, len );
+        little<int>::ref( r->data() ) = little<int>::ref( data );
 
         _addRecordToRecListInExtent(r, loc.getValue());
 
@@ -160,7 +160,8 @@ namespace mongo {
             }
             else {
                 DEV {
-                    unsigned long long *p = reinterpret_cast<unsigned long long *>( todelete->data() );
+                    //unsigned long long *p = reinterpret_cast<unsigned long long *>( todelete->data() );
+					little<unsigned long long> *p = &little<unsigned long long >::ref( todelete->data() );
                     *getDur().writing(p) = 0;
                 }
                 _details->addDeletedRec((DeletedRecord*)todelete, dl);

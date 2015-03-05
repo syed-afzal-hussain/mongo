@@ -565,7 +565,6 @@ namespace JsonTests {
 
                 BSONObj o = b.obj();
                 o.jsonString();
-                //cout << o.jsonString() << endl;
             }
         };
 

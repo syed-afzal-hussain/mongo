@@ -38,7 +38,7 @@
 #include "mongo/util/startup_test.h"
 #include "mongo/util/text.h"
 
-#if defined(__powerpc64__) && defined(__BIG_ENDIAN__)
+#if defined(__powerpc64__)
 #define PAGESIZE 65536
 #else
 #define PAGESIZE 4096

@@ -418,7 +418,7 @@ namespace mongo {
     void Record::touch( bool entireRecrd ) const {
         if ( _lengthWithHeaders > HeaderSize ) { // this also makes sure lengthWithHeaders is in memory
             const char * addr = _data;
-            const little<int> length = _netLength();
+            const int length = _netLength();
             for ( int i = 0 ; i <= length ; i += 2048 ) {
                 __record_touch_dummy += addr[i];
 
@@ -516,7 +516,7 @@ namespace mongo {
         if (!seen){
             const size_t page = (size_t)_data >> 12;
             const size_t region = page >> 6;
-            const size_t offset = page & 0x3f;        
+            const size_t offset = page & 0x3f;
             ps::rolling[ps::bigHash(region)].access( region , offset , true );
         }
 

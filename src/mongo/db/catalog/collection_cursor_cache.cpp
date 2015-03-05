@@ -242,6 +242,7 @@ namespace mongo {
     int CollectionCursorCache::eraseCursorGlobalIfAuthorized(int n, const long long* ids) {
         int numDeleted = 0;
         for ( int i = 0; i < n; i++ ) {
+            std::cout << __func__ << ": CursorID=" << std::hex << ids[i] << std::dec << std::endl;
             if ( eraseCursorGlobalIfAuthorized( ids[i] ) )
                 numDeleted++;
             if ( inShutdown() )
@@ -458,6 +459,8 @@ namespace mongo {
     bool CollectionCursorCache::eraseCursor( CursorId id, bool checkAuth ) {
 
         SimpleMutex::scoped_lock lk( _mutex );
+
+        std::cout << __func__ << ": " << std::hex << id << std::dec << std::endl;
 
         CursorMap::iterator it = _cursors.find( id );
         if ( it == _cursors.end() ) {

@@ -933,7 +933,7 @@ namespace mongo {
                     Client::Context ctx(ns);
 
                     if (multi.size() > 1) {
-                        const bool keepGoing = d.reservedField() & InsertOption_ContinueOnError;
+                        const bool keepGoing = static_cast<int>(d.reservedField()) & InsertOption_ContinueOnError;
                         insertMulti(ctx, keepGoing, ns, multi, op);
                     }
                     else {

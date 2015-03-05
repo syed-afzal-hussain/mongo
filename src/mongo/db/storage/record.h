@@ -145,35 +145,34 @@ namespace mongo {
 #pragma pack()
 
     // TODO: this probably moves to record_store.h
-    class DeletedRecord 
-	{
-		public:
-	
-			int lengthWithHeaders() const { _accessing(); return _lengthWithHeaders; }
-			little<int>& lengthWithHeaders() { _accessing(); return _lengthWithHeaders; }
-			
-			int extentOfs() const { _accessing(); return _extentOfs; }
-			little<int>& extentOfs() { _accessing(); return _extentOfs; }
-	
-			// TODO: we need to not const_cast here but problem is DiskLoc::writing
-			DiskLoc& nextDeleted() const { _accessing(); return const_cast<DiskLoc&>(_nextDeleted); }
-	
-			DiskLoc myExtentLoc(const DiskLoc& myLoc) const {
-				_accessing();
-				return DiskLoc(myLoc.a(), _extentOfs);
-			}
-			Extent* myExtent(const DiskLoc& myLoc) {
-				_accessing();
-				return DiskLoc(myLoc.a(), _extentOfs).ext();
-			}
-		private:
-	
-			void _accessing() const;
-	
-			little<int> _lengthWithHeaders;
-			little<int> _extentOfs;
-			DiskLoc _nextDeleted;
-		};
+    class DeletedRecord {
+    public:
+
+        int lengthWithHeaders() const { _accessing(); return _lengthWithHeaders; }
+        little<int>& lengthWithHeaders() { _accessing(); return _lengthWithHeaders; }
+        
+        int extentOfs() const { _accessing(); return _extentOfs; }
+        little<int>& extentOfs() { _accessing(); return _extentOfs; }
+
+        // TODO: we need to not const_cast here but problem is DiskLoc::writing
+        DiskLoc& nextDeleted() const { _accessing(); return const_cast<DiskLoc&>(_nextDeleted); }
+
+        DiskLoc myExtentLoc(const DiskLoc& myLoc) const {
+            _accessing();
+            return DiskLoc(myLoc.a(), _extentOfs);
+        }
+        Extent* myExtent(const DiskLoc& myLoc) {
+            _accessing();
+            return DiskLoc(myLoc.a(), _extentOfs).ext();
+        }
+    private:
+
+        void _accessing() const;
+
+        little<int> _lengthWithHeaders;
+        little<int> _extentOfs;
+        DiskLoc _nextDeleted;
+    };
 
     BOOST_STATIC_ASSERT( 16 == sizeof(DeletedRecord) );
 
