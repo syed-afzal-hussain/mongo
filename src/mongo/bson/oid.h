@@ -137,6 +137,7 @@ namespace mongo {
             unsigned char data[kOIDSize];
         };
 
+        static unsigned ourPid();
         static void foldInPid(MachineAndPid& x);
         static MachineAndPid genMachineAndPid();
     };

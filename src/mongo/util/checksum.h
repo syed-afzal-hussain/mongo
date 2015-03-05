@@ -42,7 +42,7 @@ namespace mongo {
         void gen(const void *buf, unsigned len) {
             wassert( ((size_t)buf) % 8 == 0 ); // performance warning
             unsigned n = len / 8 / 2;
-            const unsigned long long *p = (const unsigned long long *) buf;
+            const little<unsigned long long> *p = &little<unsigned long long>::ref( buf );
             unsigned long long a = 0;
             for( unsigned i = 0; i < n; i++ ) {
                 a += (*p ^ i);

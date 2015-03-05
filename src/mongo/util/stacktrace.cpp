@@ -313,8 +313,10 @@ namespace mongo {
 
         char** backtraceStrings = backtrace_symbols(addresses, addressCount);
         if (backtraceStrings == NULL) {
-            const int err = errno;
-            os << "Unable to collect backtrace symbols (" << errnoWithDescription(err) << ")"
+            //const int err = errno;
+            /*os << "Unable to collect backtrace symbols (" << errnoWithDescription(err) << ")"
+               << std::endl;*/
+            os << "Unable to collect backtrace symbols"
                << std::endl;
             return;
         }

@@ -971,7 +971,7 @@ namespace PerfTests {
         void prep() {
             {
                 // the checksum code assumes 'standard' rollover on addition overflows. let's check that:
-                unsigned long long x = 0xffffffffffffffffULL;
+                little<unsigned long long> x = 0xffffffffffffffffULL;
                 ASSERT( x+2 == 1 );
             }
 

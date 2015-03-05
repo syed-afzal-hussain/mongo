@@ -332,7 +332,7 @@ namespace mongo {
     void CursorCache::gotKillCursors(Message& m ) {
         DbMessage dbmessage(m);
         int n = dbmessage.pullInt();
-
+		
         if ( n > 2000 ) {
             ( n < 30000 ? warning() : error() ) << "receivedKillCursors, n=" << n << endl;
         }
@@ -343,7 +343,8 @@ namespace mongo {
                     m.dataSize() == 8 + ( 8 * n ) );
 
 
-        const long long* cursors = dbmessage.getArray(n);
+        const long long* cursors = dbmessage.getArray(n);		
+		
         ClientBasic* client = ClientBasic::getCurrent();
         AuthorizationSession* authSession = client->getAuthorizationSession();
         for ( int i=0; i<n; i++ ) {

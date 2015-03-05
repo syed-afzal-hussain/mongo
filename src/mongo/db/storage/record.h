@@ -53,16 +53,16 @@ namespace mongo {
         enum HeaderSizeValue { HeaderSize = 16 };
 
         int lengthWithHeaders() const {  _accessing(); return _lengthWithHeaders; }
-        int& lengthWithHeaders() {  _accessing(); return _lengthWithHeaders; }
+        little<int>& lengthWithHeaders() {  _accessing(); return _lengthWithHeaders; }
 
         int extentOfs() const { _accessing(); return _extentOfs; }
-        int& extentOfs() { _accessing(); return _extentOfs; }
-
+        little<int>& extentOfs() { _accessing(); return _extentOfs; }
+        
         int nextOfs() const { _accessing(); return _nextOfs; }
-        int& nextOfs() { _accessing(); return _nextOfs; }
+        little<int>& nextOfs() { _accessing(); return _nextOfs; }
 
         int prevOfs() const {  _accessing(); return _prevOfs; }
-        int& prevOfs() {  _accessing(); return _prevOfs; }
+        little<int>& prevOfs() {  _accessing(); return _prevOfs; }
 
         const char * data() const { _accessing(); return _data; }
         char * data() { _accessing(); return _data; }
@@ -83,8 +83,8 @@ namespace mongo {
         DiskLoc getPrev(const DiskLoc& myLoc); // TODO(ERH): remove
 
         struct NP {
-            int nextOfs;
-            int prevOfs;
+            little<int> nextOfs;
+            little<int> prevOfs;
         };
         NP* np() { return (NP*) &_nextOfs; }
 
@@ -123,17 +123,17 @@ namespace mongo {
         static void appendWorkingSetInfo( BSONObjBuilder& b );
     private:
 
-        int _netLength() const { return _lengthWithHeaders - HeaderSize; }
+        little<int> _netLength() const { return _lengthWithHeaders - HeaderSize; }
 
         /**
          * call this when accessing a field which could hit disk
          */
         void _accessing() const;
 
-        int _lengthWithHeaders;
-        int _extentOfs;
-        int _nextOfs;
-        int _prevOfs;
+        little<int> _lengthWithHeaders;
+        little<int> _extentOfs;
+        little<int> _nextOfs;
+        little<int> _prevOfs;
 
         /** be careful when referencing this that your write intent was correct */
         char _data[4];
@@ -145,34 +145,35 @@ namespace mongo {
 #pragma pack()
 
     // TODO: this probably moves to record_store.h
-    class DeletedRecord {
-    public:
-
-        int lengthWithHeaders() const { _accessing(); return _lengthWithHeaders; }
-        int& lengthWithHeaders() { _accessing(); return _lengthWithHeaders; }
-
-        int extentOfs() const { _accessing(); return _extentOfs; }
-        int& extentOfs() { _accessing(); return _extentOfs; }
-
-        // TODO: we need to not const_cast here but problem is DiskLoc::writing
-        DiskLoc& nextDeleted() const { _accessing(); return const_cast<DiskLoc&>(_nextDeleted); }
-
-        DiskLoc myExtentLoc(const DiskLoc& myLoc) const {
-            _accessing();
-            return DiskLoc(myLoc.a(), _extentOfs);
-        }
-        Extent* myExtent(const DiskLoc& myLoc) {
-            _accessing();
-            return DiskLoc(myLoc.a(), _extentOfs).ext();
-        }
-    private:
-
-        void _accessing() const;
-
-        int _lengthWithHeaders;
-        int _extentOfs;
-        DiskLoc _nextDeleted;
-    };
+    class DeletedRecord 
+	{
+		public:
+	
+			int lengthWithHeaders() const { _accessing(); return _lengthWithHeaders; }
+			little<int>& lengthWithHeaders() { _accessing(); return _lengthWithHeaders; }
+			
+			int extentOfs() const { _accessing(); return _extentOfs; }
+			little<int>& extentOfs() { _accessing(); return _extentOfs; }
+	
+			// TODO: we need to not const_cast here but problem is DiskLoc::writing
+			DiskLoc& nextDeleted() const { _accessing(); return const_cast<DiskLoc&>(_nextDeleted); }
+	
+			DiskLoc myExtentLoc(const DiskLoc& myLoc) const {
+				_accessing();
+				return DiskLoc(myLoc.a(), _extentOfs);
+			}
+			Extent* myExtent(const DiskLoc& myLoc) {
+				_accessing();
+				return DiskLoc(myLoc.a(), _extentOfs).ext();
+			}
+		private:
+	
+			void _accessing() const;
+	
+			little<int> _lengthWithHeaders;
+			little<int> _extentOfs;
+			DiskLoc _nextDeleted;
+		};
 
     BOOST_STATIC_ASSERT( 16 == sizeof(DeletedRecord) );
 

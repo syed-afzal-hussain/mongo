@@ -106,7 +106,7 @@ namespace mongo {
         short keyDataOfs() const { return (short) _kdo; }
 
         /** Offset within current bucket of the variable width bson key for this _KeyNode. */
-        unsigned short _kdo;
+        little<unsigned short> _kdo;
         void setKeyDataOfs(short s) {
             _kdo = s;
             verify(s>=0);
@@ -166,10 +166,10 @@ namespace mongo {
         /** Given that there are n keys, this is the n index child. */
         DiskLoc nextChild;
         /** can be reused, value is 8192 in current pdfile version Apr2010 */
-        unsigned short _wasSize;
+        little<unsigned short> _wasSize;
         /** zero */
-        unsigned short _reserved1;
-        int flags;
+        little<unsigned short> _reserved1;
+        little<int> flags;
 
         void _init() {
             _reserved1 = 0;
@@ -180,13 +180,13 @@ namespace mongo {
         /** basicInsert() assumes the next three members are consecutive and in this order: */
 
         /** Size of the empty region. */
-        int emptySize;
+        little<int> emptySize;
         /** Size used for bson storage, including storage of old keys. */
-        int topSize;
+        little<int> topSize;
         /* Number of keys in the bucket. */
-        int n;
+        little<int> n;
 
-        int reserved;
+        little<int> reserved;
         /* Beginning of the bucket's body */
         char data[4];
 
@@ -205,16 +205,19 @@ namespace mongo {
 
     // a a a ofs ofs ofs ofs
     class DiskLoc56Bit {
-        int ofs;
+        little<int> ofs;
         unsigned char _a[3];
         unsigned long long Z() const { 
             // endian
+			return little<unsigned long long>::ref(this) & 0x00ffffffffffffffULL;
+			#if 0
             unsigned long long result = ofs;
             char* cursor = reinterpret_cast<char *>(&result);
             *reinterpret_cast<uint16_t*>(cursor + 4) = *reinterpret_cast<const uint16_t*>(&_a[0]);
             *reinterpret_cast<uint8_t*>(cursor + 6) = *reinterpret_cast<const uint8_t*>(&_a[2]);
             *reinterpret_cast<uint8_t*>(cursor + 7) = uint8_t(0);
             return result;
+			#endif
         }
         enum { 
             // first bit of offsets used in _KeyNode we don't use -1 here.
@@ -232,10 +235,10 @@ namespace mongo {
         operator const DiskLoc() const { 
             // endian
             if( isNull() ) return DiskLoc();
-            unsigned a = *((unsigned *) (_a-1));
+            unsigned a = little<unsigned>::ref( _a - 1 );
             return DiskLoc(a >> 8, ofs);
         }
-        int& GETOFS()      { return ofs; }
+        little<int>& GETOFS()      { return ofs; }
         int getOfs() const { return ofs; }
         bool operator<(const DiskLoc56Bit& rhs) const {
             // the orderering of dup keys in btrees isn't too critical, but we'd like to put items that are 
@@ -273,7 +276,8 @@ namespace mongo {
                 la = 0;
                 ofs = OurNullOfs;
             }
-            memcpy(_a, &la, 3); // endian
+            little<int> lila = la;
+            memcpy(_a, &lila, 3); // endian
         }
         DiskLoc56Bit& writing() const { 
             return *((DiskLoc56Bit*) getDur().writingPtr((void*)this, 7));
@@ -298,14 +302,14 @@ namespace mongo {
         /** Given that there are n keys, this is the n index child. */
         Loc nextChild;
 
-        unsigned short flags;
+        little<unsigned short> flags;
 
         /** basicInsert() assumes the next three members are consecutive and in this order: */
 
         /** Size of the empty region. */
-        unsigned short emptySize;
+        little<unsigned short> emptySize;
         /** Size used for bson storage, including storage of old keys. */
-        unsigned short topSize;
+        little<unsigned short> topSize;
         /* Number of keys in the bucket. */
         unsigned short n;
 

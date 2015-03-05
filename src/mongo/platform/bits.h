@@ -24,7 +24,8 @@
 #elif defined(__i386__) || defined(_WIN32) || defined(__arm__)
 #define MONGO_PLATFORM_32
 #else
-#error "unknown platform"
+//#error "unknown platform"
+#define MONGO_PLATFORM_64
 #endif
 
 namespace mongo {

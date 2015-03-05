@@ -129,7 +129,7 @@ namespace mongo {
         void unhash_fast(unsigned *x, unsigned *y) const;
         void unhash_slow(unsigned *x, unsigned *y) const;
 
-        long long _hash;
+        little<long long> _hash;
         // Bits per field.  Our hash is 64 bits, and we have an X and a Y field,
         // so this is 1 to 32.
         unsigned _bits;

@@ -53,12 +53,14 @@ namespace mongo {
         return ss.str();
     }
 
+
     DbMessage::DbMessage(const Message& msg) : _msg(msg), _nsStart(NULL), _mark(NULL), _nsLen(0) {
         // for received messages, Message has only one buffer
         _theEnd = _msg.singleData()->_data + _msg.singleData()->dataLen();
         _nextjsobj = _msg.singleData()->_data;
 
         _reserved = readAndAdvance<int>();
+		//_reserved = little<int>::ref( _nextjsobj );
 
         // Read packet for NS
         if (messageShouldHaveNs()) {
@@ -78,27 +80,71 @@ namespace mongo {
         }
     }
 
+
+#if 0
+	DbMessage::DbMessage(const Message& _m) : _msg(_m) , _mark(NULL) {
+            // for received messages, Message has only one buffer
+            _theEnd = _m.singleData()->_data + _m.header()->dataLen();
+            char *r = _m.singleData()->_data;
+            _reserved = little<int>::ref( r );
+            _nsStart = r + 4;
+            _nextjsobj = _nsStart;
+        }
+#endif
+
     const char * DbMessage::getns() const {
         verify(messageShouldHaveNs());
         return _nsStart;
     }
-
+	
+    #if 0
     int DbMessage::getQueryNToReturn() const {
         verify(messageShouldHaveNs());
         const char* p = _nsStart + _nsLen + 1;
         checkRead<int>(p, 2);
 
-        return ((reinterpret_cast<const int*>(p)))[1];
+        //return ((reinterpret_cast<const int*>(p)))[1];
+        return ((little<int>::ref(p)))[1];
     }
+    #endif
+
+
+    const char * DbMessage::afterNS() const {
+            return _nsStart + _nsLen + 1;
+        }
+
+	int DbMessage::getInt( int num ) const {
+            const little<int>* foo = &little<int>::ref( afterNS() );
+            return foo[num];
+        }
+
+	int DbMessage::getQueryNToReturn() const {
+            return getInt( 1 );
+        }
+
 
     int DbMessage::pullInt() {
-        return readAndAdvance<int>();
+        //return readAndAdvance<int>();
+		
+		if ( _nextjsobj == _nsStart )
+                _nextjsobj += _nsLen+ 1; // skip namespace
+            const little<int>& i = little<int>::ref( _nextjsobj );
+            _nextjsobj += 4;
+            return i;
+	    		
     }
 
     long long DbMessage::pullInt64() {
-        return readAndAdvance<long long>();
+        //return readAndAdvance<long long>();
+		
+		if ( _nextjsobj == _nsStart )
+                _nextjsobj += _nsLen+ 1; // skip namespace
+            little<long long>& i = little<long long>::ref( const_cast<char*>( _nextjsobj ) );
+            _nextjsobj += 8;
+            return i;
+	    
     }
-
+	
     const long long* DbMessage::getArray(size_t count) const {
         checkRead<long long>(_nextjsobj, count);
         return reinterpret_cast<const long long*>(_nextjsobj);
@@ -117,8 +163,8 @@ namespace mongo {
         }
 
         BSONObj js(_nextjsobj);
-        verify(js.objsize() >= 5);
-        verify(js.objsize() <= (_theEnd - _nextjsobj));
+        //verify(js.objsize() >= 5);
+        //verify(js.objsize() <= (_theEnd - _nextjsobj));
 
         _nextjsobj += js.objsize();
         if (_nextjsobj >= _theEnd)

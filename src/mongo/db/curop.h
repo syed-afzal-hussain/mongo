@@ -61,7 +61,8 @@ namespace mongo {
         enum { TOO_BIG_SENTINEL = 1 } ;
 
         CachedBSONObj() {
-            _size = (int*)_buf;
+            //_size = (int*)_buf;
+			_size = &little<int>::ref( _buf );
             reset();
         }
 
@@ -112,14 +113,16 @@ namespace mongo {
         void _reset( int sz ) { _size[0] = sz; }
 
         mutable SpinLock _lock;
-        int * _size;
+        //int * _size;
+        little<int> * _size;
         char _buf[BUFFER_SIZE];
     };
 
     /* lifespan is different than CurOp because of recursives with DBDirectClient */
     class OpDebug {
     public:
-        OpDebug() : ns(""), planSummary(2048) { reset(); }
+        //OpDebug() : ns(""), planSummary(2048) { reset(); }
+		OpDebug() : ns(""){ reset(); }
 
         void reset();
 

@@ -45,7 +45,7 @@ namespace mongo {
     class Extent {
     public:
         enum { extentSignature = 0x41424344 };
-        unsigned magic;
+        little<unsigned> magic;
         DiskLoc myLoc;
         DiskLoc xnext, xprev; /* next/prev extent for this namespace */
 
@@ -54,7 +54,7 @@ namespace mongo {
         */
         Namespace nsDiagnostic;
 
-        int length;   /* size of the extent, including these fields */
+        little<int> length;   /* size of the extent, including these fields */
         DiskLoc firstRecord;
         DiskLoc lastRecord;
         char _extentData[4];

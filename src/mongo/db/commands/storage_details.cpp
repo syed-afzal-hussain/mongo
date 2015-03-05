@@ -50,12 +50,12 @@ namespace {
      */
     struct AnalyzeParams {
         // startOfs and endOfs are extent-relative
-        int startOfs;
-        int endOfs;
-        int length;
-        int numberOfSlices;
-        int granularity;
-        int lastSliceLength;
+        little<int> startOfs;
+        little<int> endOfs;
+        little<int> length;
+        little<int> numberOfSlices;
+        little<int> granularity;
+        little<int> lastSliceLength;
         string characteristicField;
         bool processDeletedRecords;
         bool showRecords;
@@ -680,7 +680,7 @@ namespace {
     bool analyzeExtent(const NamespaceDetails* nsd, const Extent* ex, SubCommand subCommand,
                        AnalyzeParams& params, string& errmsg, BSONObjBuilder& outputBuilder) {
 
-        params.startOfs = max(0, params.startOfs);
+        params.startOfs = max((little<int>)0, params.startOfs);
         params.endOfs = min(params.endOfs, ex->length);
         params.length = params.endOfs - params.startOfs;
         if (params.numberOfSlices != 0) {

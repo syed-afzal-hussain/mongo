@@ -117,18 +117,18 @@ namespace mongo {
 
     void BSONElementManipulator::SetNumber(double d) {
         if ( _element.type() == NumberDouble )
-            *getDur().writing( reinterpret_cast< double * >( value() )  ) = d;
+            *getDur().writing( &little< double >::ref( value() ) ) = d;
         else if ( _element.type() == NumberInt )
-            *getDur().writing( reinterpret_cast< int * >( value() ) ) = (int) d;
+            *getDur().writing( &little< int >::ref( value() ) ) = (int) d;
         else verify(0);
     }
     void BSONElementManipulator::SetLong(long long n) {
         verify( _element.type() == NumberLong );
-        *getDur().writing( reinterpret_cast< long long * >(value()) ) = n;
+        *getDur().writing( &little< long long >::ref( value() ) ) = n;
     }
     void BSONElementManipulator::SetInt(int n) {
         verify( _element.type() == NumberInt );
-        getDur().writingInt( *reinterpret_cast< int * >( value() ) ) = n;
+        getDur().writingInt( little< int >::ref( value() ) ) = n;
     }
 
     void inProgCmd( Message &m, DbResponse &dbresponse ) {
@@ -442,7 +442,7 @@ namespace mongo {
         }
         else if ( op == dbMsg ) {
             // deprecated - replaced by commands
-            const char *p = dbmsg.getns();
+            const char *p = dbmsg.getns();			
 
             int len = strlen(p);
             if ( len > 400 )
@@ -473,10 +473,11 @@ namespace mongo {
                     currentOp.done();
                     shouldLog = true;
                 }
-                else {
+                else 
+				{
                     const char* ns = dbmsg.getns();
                     const NamespaceString nsString(ns);
-
+                
                     if (!nsString.isValid()) {
                         uassert(16257, str::stream() << "Invalid ns [" << ns << "]", false);
                     }

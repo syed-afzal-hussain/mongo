@@ -54,7 +54,7 @@ namespace mongo {
         delRecLength = extentLength - Extent::HeaderSize();
         if( delRecLength >= 32*1024 && ns.find('$') != string::npos && !capped ) {
             // probably an index. so skip forward to keep its records page aligned
-            int& ofs = emptyLoc.GETOFS();
+            little<int>& ofs = emptyLoc.GETOFS();
             int newOfs = (ofs + 0xfff) & ~0xfff;
             delRecLength -= (newOfs-ofs);
             dassert( delRecLength > 0 );
@@ -137,11 +137,13 @@ namespace mongo {
     DiskLoc Extent::_reuse(const StringData& nsname, bool capped) {
         LOG(3) << "_reuse extent was:" << nsDiagnostic.toString() << " now:" << nsname << endl;
         if (magic != extentSignature) {
+			#if 0
             StringBuilder sb;
             sb << "bad extent signature " << integerToHex(magic)
                << " for namespace '" << nsDiagnostic.toString()
                << "' found in Extent::_reuse";
             msgasserted(10360, sb.str());
+			#endif
         }
         nsDiagnostic = nsname;
         markEmpty();
@@ -184,24 +186,29 @@ namespace mongo {
         bool extentOk = true;
         if (magic != extentSignature) {
             if (errors) {
+				#if 0
                 StringBuilder sb;
                 sb << "bad extent signature " << integerToHex(magic)
                     << " in extent " << diskLoc.toString();
                 *errors << sb.str();
+				#endif
             }
             extentOk = false;
         }
         if (myLoc != diskLoc) {
             if (errors) {
+				#if 0
                 StringBuilder sb;
                 sb << "extent " << diskLoc.toString()
                     << " self-pointer is " << myLoc.toString();
                 *errors << sb.str();
+				#endif
             }
             extentOk = false;
         }
         if (firstRecord.isNull() != lastRecord.isNull()) {
             if (errors) {
+				#if 0
                 StringBuilder sb;
                 if (firstRecord.isNull()) {
                     sb << "in extent " << diskLoc.toString()
@@ -214,16 +221,19 @@ namespace mongo {
                         << " but lastRecord is null";
                 }
                 *errors << sb.str();
+				#endif
             }
             extentOk = false;
         }
         if (length < minSize()) {
             if (errors) {
+				#if 0
                 StringBuilder sb;
                 sb << "length of extent " << diskLoc.toString()
                     << " is " << length
                     << ", which is less than minimum length of " << minSize();
                 *errors << sb.str();
+				#endif
             }
             extentOk = false;
         }

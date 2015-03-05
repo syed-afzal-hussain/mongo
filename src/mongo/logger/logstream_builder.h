@@ -103,7 +103,7 @@ namespace logger {
 
         template <typename T>
         LogstreamBuilder& operator<<(const T& x) {
-            stream() << x.toString();
+            //stream() << x.toString();
             return *this;
         }
 

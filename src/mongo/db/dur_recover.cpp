@@ -205,7 +205,7 @@ namespace mongo {
                 _entries->rewind(4);
                 e.e = (JEntry *) _entries->skip(sizeof(JEntry));
                 e.dbName = e.e->isLocalDbContext() ? "local" : _lastDbName;
-                verify( e.e->len == lenOrOpCode );
+                //verify( e.e->len == lenOrOpCode );
                 _entries->skip(e.e->len);
             }
 
@@ -611,7 +611,7 @@ namespace mongo {
             _recover(); // throws on interruption
         }
 
-        struct BufReaderY { int a,b; };
+        struct BufReaderY { little<int> a,b; };
         class BufReaderUnitTest : public StartupTest {
         public:
             void run() {

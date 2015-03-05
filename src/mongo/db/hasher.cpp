@@ -65,7 +65,7 @@ namespace mongo {
                                            const BSONElement& e ,
                                            bool includeFieldName ) {
 
-        int canonicalType = e.canonicalType();
+        little<int> canonicalType = e.canonicalType();
         h->addData( &canonicalType , sizeof( canonicalType ) );
 
         if ( includeFieldName ){
@@ -76,7 +76,7 @@ namespace mongo {
             //if there are no embedded objects (subobjects or arrays),
             //compute the hash, squashing numeric types to 64-bit ints
             if ( e.isNumber() ){
-                long long int i = e.safeNumberLong(); //well-defined for troublesome doubles
+                little<long long int> i = e.safeNumberLong(); //well-defined for troublesome doubles
                 h->addData( &i , sizeof( i ) );
             }
             else {
@@ -108,7 +108,16 @@ namespace mongo {
         void run() {
             // Hard-coded check to ensure the hash function is consistent across platforms
             BSONObj o = BSON( "check" << 42 );
-            verify( BSONElementHasher::hash64( o.firstElement(), 0 ) == -944302157085130861LL );
+
+#ifdef __BIG_ENDIAN__
+            long long expected_hash = 0x933f4ef6302ae5f2LL;
+#else
+            long long expected_hash = 0xf2e52a30f64e3f93LL;
+#endif
+            long long result = BSONElementHasher::hash64(o.firstElement(), 0);
+
+            verify( result == expected_hash);
+           // verify( BSONElementHasher::hash64( o.firstElement(), 0 ) == -944302157085130861LL );
         }
     } hasherUnitTest;
 }

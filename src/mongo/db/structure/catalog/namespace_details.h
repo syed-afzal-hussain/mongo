@@ -89,50 +89,50 @@ namespace mongo {
         // ofs 168 (8 byte aligned)
         struct Stats {
             // datasize and nrecords MUST Be adjacent code assumes!
-            long long datasize; // this includes padding, but not record headers
-            long long nrecords;
+            little<long long> datasize; // this includes padding, but not record headers
+            little<long long> nrecords;
         } _stats;
 
-        int _lastExtentSize;
-        int _nIndexes;
+        little<int> _lastExtentSize;
+        little<int> _nIndexes;
 
         // ofs 192
         IndexDetails _indexes[NIndexesBase];
 
         // ofs 352 (16 byte aligned)
-        int _isCapped;                         // there is wasted space here if I'm right (ERH)
-        int _maxDocsInCapped;                  // max # of objects for a capped table, -1 for inf.
+        little<int> _isCapped;                         // there is wasted space here if I'm right (ERH)
+        little<int> _maxDocsInCapped;                  // max # of objects for a capped table, -1 for inf.
 
-        double _paddingFactor;                 // 1.0 = no padding.
+        little<double> _paddingFactor;                 // 1.0 = no padding.
         // ofs 368 (16)
-        int _systemFlags; // things that the system sets/cares about
+        little<int> _systemFlags; // things that the system sets/cares about
 
         DiskLoc _capExtent; // the "current" extent we're writing too for a capped collection
         DiskLoc _capFirstNewRecord;
 
-        unsigned short _dataFileVersion;       // NamespaceDetails version.  So we can do backward compatibility in the future. See filever.h
-        unsigned short _indexFileVersion;
-        unsigned long long _multiKeyIndexBits;
+        little<unsigned short> _dataFileVersion;       // NamespaceDetails version.  So we can do backward compatibility in the future. See filever.h
+        little<unsigned short> _indexFileVersion;
+        little<unsigned long long> _multiKeyIndexBits;
 
         // ofs 400 (16)
-        unsigned long long _reservedA;
-        long long _extraOffset;               // where the $extra info is located (bytes relative to this)
+        little<unsigned long long> _reservedA;
+        little<long long> _extraOffset;               // where the $extra info is located (bytes relative to this)
 
-        int _indexBuildsInProgress;            // Number of indexes currently being built
+        little<int> _indexBuildsInProgress;            // Number of indexes currently being built
 
-        int _userFlags;
+        little<int> _userFlags;
         char _reserved[72];
         /*-------- end data 496 bytes */
     public:
         explicit NamespaceDetails( const DiskLoc &loc, bool _capped );
 
         class Extra {
-            long long _next;
+            little<long long> _next;
         public:
             IndexDetails details[NIndexesExtra];
         private:
-            unsigned reserved2;
-            unsigned reserved3;
+            little<unsigned> reserved2;
+            little<unsigned> reserved3;
             Extra(const Extra&) { verify(false); }
             Extra& operator=(const Extra& r) { verify(false); return *this; }
         public:
@@ -235,7 +235,7 @@ namespace mongo {
         /* when a background index build is in progress, we don't count the index in nIndexes until
            complete, yet need to still use it in _indexRecord() - thus we use this function for that.
         */
-        int getTotalIndexCount() const { return _nIndexes + _indexBuildsInProgress; }
+        little<int> getTotalIndexCount() const { return _nIndexes + _indexBuildsInProgress; }
 
         int getCompletedIndexCount() const { return _nIndexes; }
 
@@ -322,8 +322,28 @@ namespace mongo {
                    can pushes this down considerably. further tweaking will be a good idea but 
                    this should be an adequate starting point.
                 */
-                double N = min(_nIndexes,7) + 3;
-                double x = min(2.0,_paddingFactor + (0.001 * N));
+                //double N = min(_nIndexes,7) + 3;
+                double N=0;
+				if (_nIndexes>=7)
+				{
+				   N=10;
+				}
+				else
+				{
+				   N=_nIndexes+3;
+				}
+				
+                //double x = min(2.0,_paddingFactor + (0.001 * N));
+                double x=0;
+                if ((_paddingFactor + (0.001 * N))>=2.0)
+                {
+                   x=2.0;
+                }
+				else
+				{
+				   x=_paddingFactor + (0.001 * N);
+				}
+                
                 setPaddingFactor( x );
             }
         }

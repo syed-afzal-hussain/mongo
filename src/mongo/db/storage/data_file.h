@@ -54,11 +54,11 @@ namespace mongo {
 #pragma pack(1)
     class DataFileHeader {
     public:
-        int version;
-        int versionMinor;
-        int fileLength;
+        little<int> version;
+        little<int> versionMinor;
+        little<int> fileLength;
         DiskLoc unused; /* unused is the portion of the file that doesn't belong to any allocated extents. -1 = no more */
-        int unusedLength;
+        little<int> unusedLength;
         DiskLoc freeListStart;
         DiskLoc freeListEnd;
         char reserved[8192 - 4*4 - 8*3];

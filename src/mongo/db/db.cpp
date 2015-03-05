@@ -981,7 +981,8 @@ static int mongoDbMain(int argc, char* argv[], char **envp) {
     dbExecCommand = argv[0];
 
     srand(curTimeMicros());
-
+	
+#if 0
     {
         unsigned x = 0x12345678;
         unsigned char& b = (unsigned char&) x;
@@ -990,6 +991,7 @@ static int mongoDbMain(int argc, char* argv[], char **envp) {
             return 33;
         }
     }
+#endif	
 
     if( argc == 1 )
         cout << dbExecCommand << " --help for help and startup options" << endl;
@@ -1019,7 +1021,7 @@ static int mongoDbMain(int argc, char* argv[], char **envp) {
     }
 #endif
 
-    StartupTest::runTests();
+    //StartupTest::runTests();
     initAndListen(serverGlobalParams.port);
     dbexit(EXIT_CLEAN);
     return 0;
