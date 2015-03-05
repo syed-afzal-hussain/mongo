@@ -141,8 +141,8 @@ namespace mongo {
         }
 
         long long getCursor() {
-            //verify( responseTo > 0 );
-            //verify( _operation == opReply );
+            verify( responseTo > 0 );
+            verify( _operation == opReply );
             return little<long long>::ref( _data + 4 );
         }
 

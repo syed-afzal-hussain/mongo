@@ -1021,7 +1021,7 @@ static int mongoDbMain(int argc, char* argv[], char **envp) {
     }
 #endif
 
-    //StartupTest::runTests();
+    StartupTest::runTests();
     initAndListen(serverGlobalParams.port);
     dbexit(EXIT_CLEAN);
     return 0;

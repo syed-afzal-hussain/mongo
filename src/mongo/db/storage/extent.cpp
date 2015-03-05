@@ -137,13 +137,11 @@ namespace mongo {
     DiskLoc Extent::_reuse(const StringData& nsname, bool capped) {
         LOG(3) << "_reuse extent was:" << nsDiagnostic.toString() << " now:" << nsname << endl;
         if (magic != extentSignature) {
-			#if 0
             StringBuilder sb;
-            sb << "bad extent signature " << integerToHex(magic)
+            sb << "bad extent signature " << toHex((void*)((unsigned)magic), sizeof(unsigned))
                << " for namespace '" << nsDiagnostic.toString()
                << "' found in Extent::_reuse";
             msgasserted(10360, sb.str());
-			#endif
         }
         nsDiagnostic = nsname;
         markEmpty();
@@ -186,29 +184,24 @@ namespace mongo {
         bool extentOk = true;
         if (magic != extentSignature) {
             if (errors) {
-				#if 0
                 StringBuilder sb;
-                sb << "bad extent signature " << integerToHex(magic)
+                sb << "bad extent signature " << toHex((void*)((unsigned)magic), sizeof(unsigned))
                     << " in extent " << diskLoc.toString();
                 *errors << sb.str();
-				#endif
             }
             extentOk = false;
         }
         if (myLoc != diskLoc) {
             if (errors) {
-				#if 0
                 StringBuilder sb;
                 sb << "extent " << diskLoc.toString()
                     << " self-pointer is " << myLoc.toString();
                 *errors << sb.str();
-				#endif
             }
             extentOk = false;
         }
         if (firstRecord.isNull() != lastRecord.isNull()) {
             if (errors) {
-				#if 0
                 StringBuilder sb;
                 if (firstRecord.isNull()) {
                     sb << "in extent " << diskLoc.toString()
@@ -221,19 +214,16 @@ namespace mongo {
                         << " but lastRecord is null";
                 }
                 *errors << sb.str();
-				#endif
             }
             extentOk = false;
         }
         if (length < minSize()) {
             if (errors) {
-				#if 0
                 StringBuilder sb;
                 sb << "length of extent " << diskLoc.toString()
                     << " is " << length
                     << ", which is less than minimum length of " << minSize();
                 *errors << sb.str();
-				#endif
             }
             extentOk = false;
         }

@@ -59,8 +59,9 @@ namespace mongo {
         _theEnd = _msg.singleData()->_data + _msg.singleData()->dataLen();
         _nextjsobj = _msg.singleData()->_data;
 
-        _reserved = readAndAdvance<int>();
-		//_reserved = little<int>::ref( _nextjsobj );
+        //_reserved = readAndAdvance<int>();
+		_reserved = little<int>::ref( _nextjsobj );
+        _nextjsobj += sizeof(int);
 
         // Read packet for NS
         if (messageShouldHaveNs()) {
@@ -125,26 +126,26 @@ namespace mongo {
 
     int DbMessage::pullInt() {
         //return readAndAdvance<int>();
-		
+
 		if ( _nextjsobj == _nsStart )
                 _nextjsobj += _nsLen+ 1; // skip namespace
             const little<int>& i = little<int>::ref( _nextjsobj );
             _nextjsobj += 4;
             return i;
-	    		
+ 
     }
 
     long long DbMessage::pullInt64() {
         //return readAndAdvance<long long>();
-		
+
 		if ( _nextjsobj == _nsStart )
                 _nextjsobj += _nsLen+ 1; // skip namespace
             little<long long>& i = little<long long>::ref( const_cast<char*>( _nextjsobj ) );
             _nextjsobj += 8;
             return i;
-	    
     }
-	
+
+    // TODO little<long long> ?
     const long long* DbMessage::getArray(size_t count) const {
         checkRead<long long>(_nextjsobj, count);
         return reinterpret_cast<const long long*>(_nextjsobj);
@@ -163,8 +164,8 @@ namespace mongo {
         }
 
         BSONObj js(_nextjsobj);
-        //verify(js.objsize() >= 5);
-        //verify(js.objsize() <= (_theEnd - _nextjsobj));
+        verify(js.objsize() >= 5);
+        verify(js.objsize() <= (_theEnd - _nextjsobj));
 
         _nextjsobj += js.objsize();
         if (_nextjsobj >= _theEnd)
