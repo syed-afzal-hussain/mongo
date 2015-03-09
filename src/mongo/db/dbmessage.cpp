@@ -145,7 +145,6 @@ namespace mongo {
             return i;
     }
 
-    // TODO little<long long> ?
     const long long* DbMessage::getArray(size_t count) const {
         checkRead<long long>(_nextjsobj, count);
         return reinterpret_cast<const long long*>(_nextjsobj);

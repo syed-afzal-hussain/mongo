@@ -242,8 +242,11 @@ namespace mongo {
     int CollectionCursorCache::eraseCursorGlobalIfAuthorized(int n, const long long* ids) {
         int numDeleted = 0;
         for ( int i = 0; i < n; i++ ) {
-            std::cout << __func__ << ": CursorID=" << std::hex << ids[i] << std::dec << std::endl;
+#ifdef BOOST_BIG_ENDIAN
+            if ( eraseCursorGlobalIfAuthorized( byteSwap(ids[i]) ) )
+#else
             if ( eraseCursorGlobalIfAuthorized( ids[i] ) )
+#endif
                 numDeleted++;
             if ( inShutdown() )
                 break;
