@@ -202,6 +202,7 @@ add_option( "disable-declspec-thread", "don't use __declspec(thread) on Windows 
 # base compile flags
 add_option( "64" , "whether to force 64 bit" , 0 , True , "force64" )
 add_option( "32" , "whether to force 32 bit" , 0 , True , "force32" )
+add_option( "31" , "whether to force 31 bit for s390x" , 0 , True , "force31" )
 
 add_option( "cxx", "compiler to use" , 1 , True )
 add_option( "cc", "compiler to use for c" , 1 , True )
@@ -353,6 +354,7 @@ boostLibs = [ "thread" , "filesystem" , "program_options", "system" ]
 onlyServer = len( COMMAND_LINE_TARGETS ) == 0 or ( len( COMMAND_LINE_TARGETS ) == 1 and str( COMMAND_LINE_TARGETS[0] ) in [ "mongod" , "mongos" , "test" ] )
 
 linux64  = False
+force31 = has_option( "force31" )
 force32 = has_option( "force32" ) 
 force64 = has_option( "force64" )
 if not force64 and not force32 and os.getcwd().endswith( "mongo-64" ):
@@ -676,6 +678,10 @@ elif linux:
     if has_option( "static-libstdc++" ):
         env.Append( LINKFLAGS=["-static-libstdc++", "-static-libgcc"] )
 
+    if os.uname()[4] == "s390" or os.uname()[4] == "s390x":
+        env.Prepend(CPPDEFINES=[ "_BIG_ENDIAN=1" ] )
+        env.Prepend(CPPDEFINES=[ "__BIG_ENDIAN__=1" ] )
+
 elif solaris:
      env.Append( CPPDEFINES=[ "__sunos__" ] )
      env.Append( LIBS=["socket","resolv"] )
@@ -879,6 +885,10 @@ if nix:
     if force32:
         env.Append( CCFLAGS="-m32" )
         env.Append( LINKFLAGS="-m32" )
+
+    if force31:
+        env.Append( CCFLAGS="-m31" )
+        env.Append( LINKFLAGS="-m31" )
 
     if has_option( "gdbserver" ):
         env.Append( CPPDEFINES=["USE_GDBSERVER"] )
