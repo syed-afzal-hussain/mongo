@@ -50,17 +50,22 @@ namespace mongo_test {
     }
 
     const size_t PAGES = 10;
+#ifdef __powerpc64__
+    const size_t PAGESIZE = 65536;
+#else
+    const size_t PAGESIZE = 4096;
+#endif
 
     TEST(ProcessInfo, BlockInMemoryDoesNotThrowIfSupported) {
         if (ProcessInfo::blockCheckSupported()) {
-            static char ptr[4096 * PAGES] = "This needs data to not be in .bss";
+            static char ptr[PAGESIZE * PAGES] = "This needs data to not be in .bss";
             ProcessInfo::blockInMemory(ptr + ProcessInfo::getPageSize() * 2);
         }
     }
 
     TEST(ProcessInfo, PagesInMemoryIsSensible) {
         if (ProcessInfo::blockCheckSupported()) {
-            static char ptr[4096 * PAGES] = "This needs data to not be in .bss";
+            static char ptr[PAGESIZE * PAGES] = "This needs data to not be in .bss";
             ptr[(ProcessInfo::getPageSize() * 0) + 1] = 'a';
             ptr[(ProcessInfo::getPageSize() * 8) + 1] = 'a';
             std::vector<char> result;
