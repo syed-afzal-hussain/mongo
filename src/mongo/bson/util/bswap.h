@@ -184,6 +184,12 @@ namespace mongo {
                                                                         \
       friend Nullstream& operator<<( Nullstream& ost, MYTYPE val ) {    \
           return ost << T(val);                                         \
+      }                                                                 \
+                                                                        \
+      std::string toString() const {                                    \
+          std::stringstream ss;                                         \
+          ss << this;                                                   \
+          return ss.str();                                              \
       }
   
 
