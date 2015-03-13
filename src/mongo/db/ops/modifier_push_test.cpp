@@ -1293,7 +1293,7 @@ namespace {
                "{$push: {a: { $each: [1], $position:3.000000000001}}}",
                "{$push: {a: { $each: [1], $position:1.2}}}",
                "{$push: {a: { $each: [1], $position:-1.2}}}",
-               "{$push: {a: { $each: [1], $position:9223372036854775810}}}",
+               "{$push: {a: { $each: [1], $position:9223372036854777856}}}",
                "{$push: {a: { $each: [1], $position:-9223372036854775810}}}",
                NULL,
         };
