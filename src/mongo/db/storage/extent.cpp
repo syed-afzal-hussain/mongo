@@ -138,7 +138,7 @@ namespace mongo {
         LOG(3) << "_reuse extent was:" << nsDiagnostic.toString() << " now:" << nsname << endl;
         if (magic != extentSignature) {
             StringBuilder sb;
-            sb << "bad extent signature " << toHex((void*)((unsigned)magic), sizeof(unsigned))
+            sb << "bad extent signature " << integerToHex(littleEndian<unsigned>(magic))
                << " for namespace '" << nsDiagnostic.toString()
                << "' found in Extent::_reuse";
             msgasserted(10360, sb.str());
@@ -185,7 +185,7 @@ namespace mongo {
         if (magic != extentSignature) {
             if (errors) {
                 StringBuilder sb;
-                sb << "bad extent signature " << toHex((void*)((unsigned)magic), sizeof(unsigned))
+                sb << "bad extent signature " << integerToHex(littleEndian<unsigned>(magic))
                     << " in extent " << diskLoc.toString();
                 *errors << sb.str();
             }
