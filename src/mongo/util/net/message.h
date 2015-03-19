@@ -100,7 +100,7 @@ namespace mongo {
         little<int> messageLength; // total message size, including this
         little<int> requestID;     // identifier for this message
         little<int> responseTo;    // requestID from the original request
-        //   (used in reponses from db)
+        //   (used in responses from db)
         little<int> opCode;
     };
 #pragma pack()
@@ -289,7 +289,7 @@ namespace mongo {
             MsgData *d = (MsgData *) malloc(dataLen);
             memcpy(d->_data, msgdata, len);
             //d->len = fixEndian(dataLen);
-			d->len = dataLen;
+            d->len = dataLen;
             d->setOperation(operation);
             _setData( d, true );
         }
