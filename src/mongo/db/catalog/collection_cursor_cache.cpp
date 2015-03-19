@@ -463,8 +463,6 @@ namespace mongo {
 
         SimpleMutex::scoped_lock lk( _mutex );
 
-        std::cout << __func__ << ": " << std::hex << id << std::dec << std::endl;
-
         CursorMap::iterator it = _cursors.find( id );
         if ( it == _cursors.end() ) {
             if ( checkAuth )
