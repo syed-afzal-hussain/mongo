@@ -53,7 +53,7 @@ namespace mongo {
                               const_cast<char *>(e.value())));
                     if (timestamp == 0) {
                         mutex::scoped_lock lk(OpTime::m);
-                        timestamp = OpTime::now(lk).asDate();
+                        timestamp = littleEndian<unsigned long long>(OpTime::now(lk).asDate());
                     }
                 }
             }
