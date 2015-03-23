@@ -38,12 +38,6 @@
 #include "mongo/util/startup_test.h"
 #include "mongo/util/text.h"
 
-#if defined(__powerpc64__)
-#define PAGESIZE 65536
-#else
-#define PAGESIZE 4096
-#endif
-
 using namespace mongoutils;
 
 namespace mongo {
@@ -53,16 +47,16 @@ namespace mongo {
             if( 0 && debug ) {
                 try {
                     LogFile f("logfile_test");
-                    void *p = malloc(4*PAGESIZE);
+                    void *p = malloc(4*g_minOSPageSizeBytes);
                     char *buf = (char*) p;
-                    buf += PAGESIZE - 1;
+                    buf += g_minOSPageSizeBytes - 1;
                     buf = (char*) (((size_t)buf)&(~0xfff));
                     memset(buf, 'z', 8192);
-                    buf[2 * PAGESIZE - 2] = '\n';
-                    buf[2 * PAGESIZE - 1] = 'B';
+                    buf[2 * g_minOSPageSizeBytes - 2] = '\n';
+                    buf[2 * g_minOSPageSizeBytes - 1] = 'B';
                     buf[0] = 'A';
-                    f.synchronousAppend(buf, 2 * PAGESIZE);
-                    f.synchronousAppend(buf, 2 * PAGESIZE);
+                    f.synchronousAppend(buf, 2 * g_minOSPageSizeBytes);
+                    f.synchronousAppend(buf, 2 * g_minOSPageSizeBytes);
                     free(p);
                 }
                 catch(DBException& e ) {
@@ -165,6 +159,11 @@ namespace mongo {
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "paths.h"
+#include <sys/ioctl.h>
+
+#ifdef __linux__
+#include <linux/fs.h>
+#endif
 
 namespace mongo {
 
@@ -180,6 +179,7 @@ namespace mongo {
                     ;
 
         _fd = open(name.c_str(), options, S_IRUSR | S_IWUSR);
+        _blkSize = g_minOSPageSizeBytes;
 
 #if defined(O_DIRECT)
         _direct = true;
@@ -188,6 +188,12 @@ namespace mongo {
             options &= ~O_DIRECT;
             _fd = open(name.c_str(), options, S_IRUSR | S_IWUSR);
         }
+#ifdef __linux__
+        _blkSize = ioctl(_fd, BLKBSZGET);
+        if (_blkSize < 0) {
+            _blkSize = g_minOSPageSizeBytes;
+        }
+#endif
 #else
         _direct = false;
 #endif
@@ -244,10 +250,7 @@ namespace mongo {
         fassert( 16144, charsToWrite >= 0 );
         fassert( 16142, _fd >= 0 );
 
-// Disabling alignment test on PPC64 due to a 64kB page size on PPC64 instead of 4kB on x86
-#ifndef __PPC64__
-        fassert( 16143, reinterpret_cast<ssize_t>( buf ) % g_minOSPageSizeBytes == 0 );  // aligned
-#endif
+        fassert( 16143, reinterpret_cast<ssize_t>( buf ) % _blkSize == 0 );  // aligned
 
 #ifdef POSIX_FADV_DONTNEED
         const off_t pos = lseek(_fd, 0, SEEK_CUR); // doesn't actually seek, just get current position
