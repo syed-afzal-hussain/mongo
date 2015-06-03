@@ -230,12 +230,14 @@ namespace mongo {
             while ( fgets( fstr, 1023, f ) != NULL && !feof(f) ) {
                 // until the end of the file
                 fstr[strlen( fstr ) < 1 ? 0 : strlen( fstr ) - 1] = '\0';                    
-                if (strncmp(fstr, "processor\t:", 11) == 0)
+                if (strncmp(fstr, "processor ", 10) == 0) // Implementation to fetch no. of processors via /proc/cpuinfo differs for IBM s390x and Intel x86_64
                     ++procCount;
                 if (strncmp(fstr, "cpu MHz\t\t:", 10) == 0)
                     freq = fstr + 11;
                 if (strncmp(fstr, "flags\t\t:", 8) == 0)
                     features = fstr + 9;
+                else if (strncmp(fstr, "features", 8) == 0) // Implementation to fetch cpufeatures via /proc/cpuinfo differs for IBM s390x and Intel x86_64
+                    features = fstr + 11;
             }
 
             fclose( f );
